@@ -1,1 +1,69 @@
-<p>dashboard works!</p>
+<div class="panel">
+
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-eye">Resumen general</div>
+      <div class="ph-title">Dashboard</div>
+    </div>
+  </div>
+
+  <!-- CARGANDO -->
+  <div *ngIf="cargando" class="loading">Cargando datos...</div>
+
+  <!-- KPIS -->
+  <div *ngIf="!cargando" class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-val">{{ stats.total_empleados }}</div>
+      <div class="kpi-lbl">Total empleados</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-val">{{ stats.total_entrevistas }}</div>
+      <div class="kpi-lbl">Entrevistas realizadas</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:60%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-val">{{ stats.completadas }}</div>
+      <div class="kpi-lbl">Entrevistas completadas</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:40%"></div></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-val">{{ stats.desc_publicados }}</div>
+      <div class="kpi-lbl">Descriptivos publicados</div>
+      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:20%"></div></div>
+    </div>
+  </div>
+
+  <!-- CARDS -->
+  <div *ngIf="!cargando" class="cards-2">
+    <div class="card">
+      <div class="card-title">Estado del relevamiento</div>
+      <div class="card-sub">Avance de entrevistas por estado</div>
+      <div class="prog-row">
+        <div class="prog-lbl">Completadas</div>
+        <div class="prog-bar"><div class="prog-fill" [style.width]="stats.total_entrevistas > 0 ? (stats.completadas / stats.total_entrevistas * 100) + '%' : '0%'"></div></div>
+        <div class="prog-val">{{ stats.completadas }}</div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-lbl">Pendientes</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
+        <div class="prog-val">{{ stats.total_entrevistas - stats.completadas }}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Descriptivos de puesto</div>
+      <div class="card-sub">Estado de publicación</div>
+      <div class="prog-row">
+        <div class="prog-lbl">Publicados</div>
+        <div class="prog-bar"><div class="prog-fill" [style.width]="'100%'"></div></div>
+        <div class="prog-val">{{ stats.desc_publicados }}</div>
+      </div>
+      <div class="prog-row">
+        <div class="prog-lbl">En proceso</div>
+        <div class="prog-bar"><div class="prog-fill" style="width:60%"></div></div>
+        <div class="prog-val">—</div>
+      </div>
+    </div>
+  </div>
+
+</div>

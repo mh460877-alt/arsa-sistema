@@ -1,0 +1,42 @@
+<div class="app-wrap">
+
+  <!-- TOPBAR -->
+  <nav class="topbar">
+    <div class="tb-logo">
+      <div class="tb-hex">AR</div>
+      <span class="tb-name">ARSA</span>
+    </div>
+    <div class="tb-right">
+      <span class="tb-user">{{ usuario?.nombre }}</span>
+      <div class="tb-avatar">{{ usuario?.nombre?.charAt(0) }}</div>
+      <button class="tb-exit" (click)="salir()">Salir</button>
+    </div>
+  </nav>
+
+  <!-- LAYOUT -->
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div *ngFor="let seccion of seccionesMenu">
+        <div class="sb-section">{{ seccion.nombre }}</div>
+        <div *ngFor="let item of seccion.items"
+             class="sb-item"
+             [class.active]="rutaActual === item.ruta"
+             [class.locked]="item.bloqueado"
+             (click)="navegar(item)">
+          <span class="sb-icon">{{ item.icon }}</span>
+          {{ item.label }}
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENIDO -->
+    <main class="main">
+      <router-outlet />
+    </main>
+
+  </div>
+</div>
+
+<div class="notif" [class.show]="notifVisible">{{ notifMsg }}</div>

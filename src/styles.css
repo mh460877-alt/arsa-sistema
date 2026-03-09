@@ -1,1 +1,44 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --az:  #0A2E4A;
+  --azr: #1A5F8A;
+  --ag:  #4BAED4;
+  --cel: #A8D8EA;
+  --vd:  #2D7D5A;
+  --vdc: #5AB88A;
+  --gr:  #6B8299;
+  --lg:  #EEF5FA;
+  --bl:  #F4F8FB;
+  --wh:  #FFFFFF;
+  --dk:  #27445D;
+  --bdr: rgba(168,216,234,.25);
+  --sh:  0 4px 24px rgba(10,46,74,.08);
+  --sh2: 0 8px 40px rgba(10,46,74,.13);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', sans-serif; background: var(--bl); color: var(--dk); font-size: 14px; line-height: 1.6; }
+
+.btn { padding: 8px 18px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; transition: all .15s; font-family: 'Inter', sans-serif; }
+.btn-p { background: var(--azr); color: #fff; }
+.btn-p:hover { background: var(--az); }
+.btn-s { background: var(--lg); color: var(--azr); border: 1px solid var(--bdr); }
+.btn-s:hover { background: var(--cel); }
+
+.badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.b-ok   { background: rgba(45,125,90,.1);  color: var(--vd);  border: 1px solid rgba(45,125,90,.2); }
+.b-ag   { background: rgba(75,174,212,.12); color: var(--azr); border: 1px solid rgba(75,174,212,.25); }
+.b-pend { background: rgba(232,213,176,.35); color: #9a7540;  border: 1px solid rgba(232,213,176,.7); }
+.b-lock { background: rgba(107,130,153,.08); color: var(--gr); border: 1px solid rgba(107,130,153,.15); }
+.b-proc { background: rgba(75,174,212,.1);  color: var(--azr); border: 1px solid rgba(75,174,212,.2); }
+
+.notif {
+  position: fixed; bottom: 24px; right: 24px; z-index: 300;
+  background: var(--az); color: #fff; padding: 12px 20px; border-radius: 8px;
+  font-size: 12px; font-weight: 500; border-left: 3px solid var(--ag);
+  opacity: 0; transform: translateY(10px); transition: all .25s; pointer-events: none;
+  font-family: 'Inter', sans-serif;
+}
+.notif.show { opacity: 1; transform: translateY(0); }

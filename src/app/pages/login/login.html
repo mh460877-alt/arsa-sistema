@@ -1,0 +1,45 @@
+<div class="login-screen">
+  <div class="ls-left">
+    <div class="ls-grid"></div>
+    <div class="ls-brand">
+      <div class="ls-hex">AR</div>
+      <div class="ls-title">SISTEMA DE<br>GESTIÓN DE<br><em>PERSONAS</em></div>
+      <div class="ls-sub">Plataforma centralizada para la gestión de descriptivos de puesto y procedimientos operativos de ARSA.</div>
+      <div class="ls-stats">
+        <div class="ls-stat"><div class="ls-sn">859</div><div class="ls-sl">Empleados</div></div>
+        <div class="ls-stat"><div class="ls-sn">47</div><div class="ls-sl">Localidades</div></div>
+        <div class="ls-stat"><div class="ls-sn">~70</div><div class="ls-sl">Puestos</div></div>
+        <div class="ls-stat"><div class="ls-sn">7</div><div class="ls-sl">Módulos</div></div>
+      </div>
+    </div>
+    <div class="ls-footer">Escencial Consultora · Río Negro 2026</div>
+  </div>
+
+  <div class="ls-right">
+    <div class="ls-form-eye">Acceso al sistema</div>
+    <div class="ls-form-title">Bienvenido a ARSA</div>
+    <div class="ls-form-sub">Ingresá con tu usuario y contraseña asignados.</div>
+
+    <div class="ls-field">
+      <label class="ls-label">Usuario / Legajo / DNI</label>
+      <input class="ls-input" type="text" placeholder="nombre.apellido o legajo" [(ngModel)]="usuario">
+    </div>
+    <div class="ls-field">
+      <label class="ls-label">Contraseña</label>
+      <input class="ls-input" type="password" placeholder="••••••••" [(ngModel)]="password">
+    </div>
+
+    <button class="ls-submit" (click)="ingresar()">INGRESAR →</button>
+
+    <div class="ls-roles">
+      <div class="ls-roles-title">Acceso rápido — demo</div>
+      <div class="ls-role-btns">
+        <div class="ls-rb" (click)="loginRapido('admin')">🛡 Administrador</div>
+        <div class="ls-rb" (click)="loginRapido('rrhh')">👤 RRHH</div>
+        <div class="ls-rb" (click)="loginRapido('empleado')">🏭 Empleado</div>
+      </div>
+    </div>
+
+    <div class="ls-error" *ngIf="error">{{ error }}</div>
+  </div>
+</div>

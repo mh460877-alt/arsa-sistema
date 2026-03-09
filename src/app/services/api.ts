@@ -37,6 +37,8 @@ export class ApiService {
   }
 
   post(body: any): Observable<any> {
-    return this.http.post(this.url, body);
+    const dataStr = encodeURIComponent(JSON.stringify(body.data || {}));
+    const fullUrl = `${this.url}?action=${body.action}&data=${dataStr}`;
+    return this.http.get(fullUrl);
   }
 }

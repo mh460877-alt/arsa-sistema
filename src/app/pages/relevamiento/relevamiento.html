@@ -1,1 +1,100 @@
-<p>relevamiento works!</p>
+<div class="panel">
+
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-eye">Gestión</div>
+      <div class="ph-title">Relevamiento</div>
+    </div>
+    <div class="ph-right">
+      <button class="btn btn-p" (click)="mostrarForm = !mostrarForm">
+        {{ mostrarForm ? 'Cancelar' : '+ Nueva entrevista' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- FORMULARIO NUEVA ENTREVISTA -->
+  <div *ngIf="mostrarForm" class="form-card">
+    <div class="form-title">Nueva entrevista</div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Legajo del empleado *</label>
+        <input type="text" [(ngModel)]="nueva.legajo" placeholder="Ej: 001">
+      </div>
+      <div class="form-field">
+        <label>Entrevistador</label>
+        <input type="text" [(ngModel)]="nueva.entrevistador" placeholder="Nombre del entrevistador">
+      </div>
+      <div class="form-field">
+        <label>Fecha</label>
+        <input type="date" [(ngModel)]="nueva.fecha">
+      </div>
+      <div class="form-field">
+        <label>Modalidad</label>
+        <select [(ngModel)]="nueva.modalidad">
+          <option>Presencial</option>
+          <option>Virtual</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Notas</label>
+      <textarea [(ngModel)]="nueva.observaciones" placeholder="Observaciones previas..." rows="3"></textarea>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-s" (click)="mostrarForm = false">Cancelar</button>
+      <button class="btn btn-p" (click)="guardar()">Guardar entrevista</button>
+    </div>
+  </div>
+
+  <!-- CARGANDO -->
+  <div *ngIf="cargando" class="loading">Cargando entrevistas...</div>
+
+  <!-- TABLA -->
+  <div *ngIf="!cargando" class="tbl-wrap">
+    <div class="tbl-toolbar">
+      <input class="tbl-search" type="text" placeholder="Buscar por legajo o entrevistador..."
+        [(ngModel)]="busqueda" (input)="filtrar()">
+      <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="filtrar()">
+        <option value="">Todos los estados</option>
+        <option>Agendada</option>
+        <option>En proceso</option>
+        <option>Completada</option>
+      </select>
+      <span class="tbl-count">{{ filtradas.length }} entrevistas</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Legajo</th>
+          <th>Entrevistador</th>
+          <th>Fecha</th>
+          <th>Modalidad</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of filtradas">
+          <td class="mono">{{ e.id_entrevista || '—' }}</td>
+          <td class="mono">{{ e.legajo || '—' }}</td>
+          <td>{{ e.entrevistador || '—' }}</td>
+          <td>{{ e.fecha || '—' }}</td>
+          <td>{{ e.modalidad || '—' }}</td>
+          <td>
+            <span class="badge"
+              [ngClass]="e.estado === 'Completada' ? 'b-ok' : e.estado === 'En proceso' ? 'b-proc' : 'b-pend'">
+              {{ e.estado || '—' }}
+            </span>
+          </td>
+        </tr>
+        <tr *ngIf="filtradas.length === 0">
+          <td colspan="6" style="text-align:center;color:var(--gr);padding:24px">
+            No hay entrevistas registradas
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

@@ -9,13 +9,14 @@ export const routes: Routes = [
     path: '',
     component: LayoutComponent,
     children: [
-      { path: 'dashboard',      loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard) },
-      { path: 'nomina',         loadComponent: () => import('./pages/nomina/nomina').then(m => m.Nomina) },
-      { path: 'relevamiento',   loadComponent: () => import('./pages/relevamiento/relevamiento').then(m => m.Relevamiento) },
-      { path: 'descriptivos',   loadComponent: () => import('./pages/descriptivos/descriptivos').then(m => m.Descriptivos) },
-      { path: 'procedimientos', loadComponent: () => import('./pages/procedimientos/procedimientos').then(m => m.Procedimientos) },
-      { path: 'organigrama',    loadComponent: () => import('./pages/organigrama/organigrama').then(m => m.Organigrama) },
-      { path: 'usuarios',       loadComponent: () => import('./pages/usuarios/usuarios').then(m => m.Usuarios) },
+      { path: 'dashboard',       loadComponent: () => import('./pages/dashboard/dashboard').then(m => m.Dashboard) },
+      { path: 'nomina',          loadComponent: () => import('./pages/nomina/nomina').then(m => m.Nomina) },
+      { path: 'relevamiento',    loadComponent: () => import('./pages/relevamiento/relevamiento').then(m => m.Relevamiento) },
+      { path: 'descriptivos',    loadComponent: () => import('./pages/descriptivos/descriptivos').then(m => m.Descriptivos) },
+      { path: 'procedimientos',  loadComponent: () => import('./pages/procedimientos/procedimientos').then(m => m.Procedimientos) },
+      { path: 'organigrama',     loadComponent: () => import('./pages/organigrama/organigrama').then(m => m.Organigrama) },
+      { path: 'usuarios',        loadComponent: () => import('./pages/usuarios/usuarios').then(m => m.Usuarios) },
+      { path: 'mi-descriptivo',  loadComponent: () => import('./pages/mi-descriptivo/mi-descriptivo').then(m => m.MiDescriptivo) },
     ]
   },
   { path: '**', redirectTo: 'login' }

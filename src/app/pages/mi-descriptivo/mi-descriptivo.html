@@ -1,0 +1,90 @@
+<div class="panel-emp">
+
+  <div *ngIf="cargando" class="loading">Cargando tu información...</div>
+
+  <div *ngIf="error" class="emp-error">{{ error }}</div>
+
+  <div *ngIf="!cargando && !error && empleado" class="emp-wrap">
+
+    <div class="emp-hero">
+      <div class="eh-left">
+        <div class="eh-eye">Mi descriptivo de puesto</div>
+        <div class="eh-puesto">{{ empleado.puesto || 'Puesto no asignado' }}</div>
+        <div class="eh-meta">Sede: {{ empleado.sede || '—' }} · {{ descriptivo?.gerencia || '—' }}</div>
+      </div>
+      <div class="eh-right">
+        <div class="eh-code">{{ descriptivo?.familia_id || '—' }}</div>
+        <div class="eh-cat">{{ descriptivo?.categoria || '—' }}</div>
+      </div>
+    </div>
+
+    <div class="emp-sections">
+
+      <div class="emp-section">
+        <div class="es-head">
+          <div class="es-eye">01</div>
+          <div class="es-title">Misión del puesto</div>
+        </div>
+        <div class="es-body">
+          <div class="es-text">{{ descriptivo?.mision || 'Contenido disponible tras validación de la entrevista.' }}</div>
+        </div>
+      </div>
+
+      <div class="emp-section">
+        <div class="es-head">
+          <div class="es-eye">02</div>
+          <div class="es-title">Datos del puesto</div>
+        </div>
+        <div class="es-body">
+          <div class="es-row"><span class="es-row-lbl">Sede</span><span class="es-row-val">{{ empleado.sede || '—' }}</span></div>
+          <div class="es-row"><span class="es-row-lbl">Gerencia</span><span class="es-row-val">{{ descriptivo?.gerencia || '—' }}</span></div>
+          <div class="es-row"><span class="es-row-lbl">Reporta a</span><span class="es-row-val">{{ descriptivo?.reporta_a || '—' }}</span></div>
+          <div class="es-row"><span class="es-row-lbl">Personas a cargo</span><span class="es-row-val">{{ descriptivo?.personas_cargo || '—' }}</span></div>
+          <div class="es-row"><span class="es-row-lbl">Nivel CCT</span><span class="es-row-val">{{ empleado.nivel_cct || '—' }}</span></div>
+        </div>
+      </div>
+
+      <div class="emp-section">
+        <div class="es-head">
+          <div class="es-eye">03</div>
+          <div class="es-title">Funciones principales</div>
+        </div>
+        <div class="es-body">
+          <div *ngIf="descriptivo?.funciones; else sinFunciones">
+            <div *ngFor="let f of descriptivo.funciones.split('|'); let i = index" class="func-item">
+              <div class="func-num">{{ i + 1 }}</div>
+              <div>{{ f.trim() }}</div>
+            </div>
+          </div>
+          <ng-template #sinFunciones>
+            <div class="es-text" style="color: var(--gr)">⏳ Funciones completas tras validación</div>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="emp-section">
+        <div class="es-head">
+          <div class="es-eye">04</div>
+          <div class="es-title">Procedimientos relacionados</div>
+        </div>
+        <div class="es-body">
+          <div *ngIf="procedimientos.length > 0; else sinProcs">
+            <div *ngFor="let p of procedimientos" class="proc-link">
+              <div class="proc-link-name">{{ p.nombre }}</div>
+              <div class="proc-link-code">{{ p.codigo }}</div>
+            </div>
+          </div>
+          <ng-template #sinProcs>
+            <div class="es-text" style="color: var(--gr)">Sin procedimientos asignados aún</div>
+          </ng-template>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="emp-download">
+      📄 Descargar mi descriptivo en PDF
+    </div>
+
+  </div>
+</div>

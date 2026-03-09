@@ -17,7 +17,7 @@ export class LayoutComponent implements OnInit {
   notifVisible = false;
   notifMsg = '';
 
-  seccionesMenu = [
+  menuAdmin = [
     {
       nombre: 'General',
       items: [
@@ -27,10 +27,10 @@ export class LayoutComponent implements OnInit {
     {
       nombre: 'Gestión',
       items: [
-        { icon: '◻', label: 'Nómina',          ruta: '/nomina',         bloqueado: false },
-        { icon: '📝', label: 'Relevamiento',    ruta: '/relevamiento',   bloqueado: false },
-        { icon: '📄', label: 'Descriptivos',    ruta: '/descriptivos',   bloqueado: false },
-        { icon: '📋', label: 'Procedimientos',  ruta: '/procedimientos', bloqueado: false },
+        { icon: '◻', label: 'Nómina',         ruta: '/nomina',         bloqueado: false },
+        { icon: '📝', label: 'Relevamiento',   ruta: '/relevamiento',   bloqueado: false },
+        { icon: '📄', label: 'Descriptivos',   ruta: '/descriptivos',   bloqueado: false },
+        { icon: '📋', label: 'Procedimientos', ruta: '/procedimientos', bloqueado: false },
       ]
     },
     {
@@ -42,11 +42,22 @@ export class LayoutComponent implements OnInit {
     {
       nombre: 'Sistema',
       items: [
-        { icon: '👥', label: 'Usuarios',     ruta: '/usuarios',    bloqueado: false },
-        { icon: '🔒', label: 'Capacitación', ruta: '',             bloqueado: true  }
+        { icon: '👥', label: 'Usuarios',     ruta: '/usuarios', bloqueado: false },
+        { icon: '🔒', label: 'Capacitación', ruta: '',          bloqueado: true  }
       ]
     }
   ];
+
+  menuEmpleado = [
+    {
+      nombre: 'Mi Puesto',
+      items: [
+        { icon: '📄', label: 'Mi Descriptivo', ruta: '/mi-descriptivo', bloqueado: false }
+      ]
+    }
+  ];
+
+  seccionesMenu: any[] = [];
 
   constructor(private router: Router) {}
 
@@ -55,12 +66,20 @@ export class LayoutComponent implements OnInit {
     if (!raw) { this.router.navigate(['/login']); return; }
     this.usuario = JSON.parse(raw);
 
+    this.seccionesMenu = this.usuario.rol === 'empleado'
+      ? this.menuEmpleado
+      : this.menuAdmin;
+
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
     ).subscribe((e: any) => {
       this.rutaActual = e.urlAfterRedirects;
     });
     this.rutaActual = this.router.url;
+
+    if (this.usuario.rol === 'empleado') {
+      this.router.navigate(['/mi-descriptivo']);
+    }
   }
 
   navegar(item: any) {

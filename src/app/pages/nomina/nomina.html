@@ -1,1 +1,68 @@
-<p>nomina works!</p>
+<div class="panel">
+
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-eye">Gestión</div>
+      <div class="ph-title">Nómina</div>
+    </div>
+    <div class="ph-right">
+      <button class="btn btn-s">Exportar CSV</button>
+      <button class="btn btn-p">+ Nuevo empleado</button>
+    </div>
+  </div>
+
+  <!-- CARGANDO -->
+  <div *ngIf="cargando" class="loading">Cargando nómina...</div>
+
+  <!-- TABLA -->
+  <div *ngIf="!cargando" class="tbl-wrap">
+    <div class="tbl-toolbar">
+      <input
+        class="tbl-search"
+        type="text"
+        placeholder="Buscar por nombre, legajo o puesto..."
+        [(ngModel)]="busqueda"
+        (input)="filtrar()">
+      <select class="tbl-filter" [(ngModel)]="filtroSede" (change)="filtrar()">
+        <option value="">Todas las sedes</option>
+        <option *ngFor="let s of sedes" [value]="s">{{ s }}</option>
+      </select>
+      <span class="tbl-count">{{ filtrados.length }} empleados</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Legajo</th>
+          <th>Apellido y nombre</th>
+          <th>Puesto</th>
+          <th>Sede</th>
+          <th>Gerencia</th>
+          <th>Nivel CCT</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of filtrados">
+          <td class="mono">{{ e.legajo || '—' }}</td>
+          <td>{{ e.apellido_nombre || '—' }}</td>
+          <td>{{ e.puesto || '—' }}</td>
+          <td>{{ e.sede || '—' }}</td>
+          <td>{{ e.gerencia || '—' }}</td>
+          <td>{{ e.nivel_cct || '—' }}</td>
+          <td>
+            <span class="badge" [ngClass]="e.estado_relev === 'Completada' ? 'b-ok' : e.estado_relev === 'En proceso' ? 'b-proc' : 'b-pend'">
+              {{ e.estado_relev || 'Pendiente' }}
+            </span>
+          </td>
+        </tr>
+        <tr *ngIf="filtrados.length === 0">
+          <td colspan="7" style="text-align:center;color:var(--gr);padding:24px">
+            No se encontraron empleados
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

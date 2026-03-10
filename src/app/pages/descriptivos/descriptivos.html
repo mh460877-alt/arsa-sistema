@@ -1,1 +1,175 @@
-<p>descriptivos works!</p>
+<div class="panel">
+
+  <div class="ph">
+    <div class="ph-left">
+      <div class="ph-eye">Gestión</div>
+      <div class="ph-title">Descriptivos</div>
+    </div>
+    <div class="ph-right" *ngIf="!seleccionado">
+      <button class="btn btn-p" (click)="nuevoDescriptivo()">+ Nuevo descriptivo</button>
+    </div>
+  </div>
+
+  <div *ngIf="cargando" class="loading">Cargando descriptivos...</div>
+
+  <!-- TABLA -->
+  <div *ngIf="!cargando && !seleccionado" class="tbl-wrap">
+    <div class="tbl-toolbar">
+      <input class="tbl-search" type="text" placeholder="Buscar por familia, puesto..."
+        [(ngModel)]="busqueda" (input)="filtrar()">
+      <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="filtrar()">
+        <option value="">Todos los estados</option>
+        <option>Borrador</option>
+        <option>En revisión</option>
+        <option>Publicado</option>
+      </select>
+      <span class="tbl-count">{{ filtrados.length }} descriptivos</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Familia ID</th>
+          <th>Familia</th>
+          <th>Puesto</th>
+          <th>Categoría</th>
+          <th>Estado</th>
+          <th>Archivo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let d of filtrados">
+          <td class="mono">{{ d.familia_id || '—' }}</td>
+          <td>{{ d.familia_nombre || '—' }}</td>
+          <td>{{ d.puesto_nombre || '—' }}</td>
+          <td>{{ d.categoria || '—' }}</td>
+          <td>
+            <span class="badge"
+              [ngClass]="d.estado === 'Publicado' ? 'b-ok' : d.estado === 'En revisión' ? 'b-proc' : 'b-pend'">
+              {{ d.estado || 'Borrador' }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [ngClass]="d.link_doc ? 'b-ok' : 'b-pend'">
+              {{ d.link_doc ? '✓ Subido' : 'Sin archivo' }}
+            </span>
+          </td>
+          <td><button class="btn btn-s" (click)="ver(d)">Ver / Editar</button></td>
+        </tr>
+        <tr *ngIf="filtrados.length === 0">
+          <td colspan="7" style="text-align:center;color:var(--gr);padding:24px">
+            No hay descriptivos cargados
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DETALLE -->
+  <div *ngIf="seleccionado" class="detalle">
+    <div class="det-header">
+      <div>
+        <div class="ph-eye">Descriptivo de puesto</div>
+        <div class="ph-title">{{ seleccionado.puesto_nombre || 'Nuevo descriptivo' }}</div>
+      </div>
+      <div class="det-actions">
+        <button class="btn btn-s" (click)="cerrar()">← Volver</button>
+        <button class="btn btn-s" (click)="editando = !editando">
+          {{ editando ? 'Cancelar' : 'Editar' }}
+        </button>
+        <button *ngIf="editando && seleccionado._esNuevo !== true"
+          class="btn btn-p" [disabled]="guardando" (click)="guardar()">
+          {{ guardando ? 'Guardando...' : 'Guardar' }}
+        </button>
+        <button *ngIf="editando && seleccionado._esNuevo === true"
+          class="btn btn-p" [disabled]="guardando" (click)="guardarNuevo()">
+          {{ guardando ? 'Guardando...' : 'Crear descriptivo' }}
+        </button>
+        <button *ngIf="!editando && seleccionado.publicado !== 'SI'"
+          class="btn btn-pub" (click)="publicar()">
+          Publicar
+        </button>
+        <span *ngIf="seleccionado.publicado === 'SI'" class="badge b-ok">✓ Publicado</span>
+      </div>
+    </div>
+
+    <!-- ARCHIVO -->
+    <div class="archivo-box">
+      <div class="archivo-label">Archivo del descriptivo (Google Drive)</div>
+      <div class="archivo-row">
+        <input class="archivo-input" type="text" [(ngModel)]="seleccionado.link_doc"
+          placeholder="Pegá el link de Drive aquí..."
+          [readonly]="!editando">
+        <a *ngIf="seleccionado.link_doc" [href]="seleccionado.link_doc" target="_blank"
+          class="btn btn-s">Abrir archivo</a>
+      </div>
+    </div>
+
+    <div class="det-grid">
+      <div class="det-field">
+        <label>Familia ID</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.familia_id">
+        <div *ngIf="!editando" class="det-val mono">{{ seleccionado.familia_id || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Nombre de familia</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.familia_nombre">
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.familia_nombre || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Nombre del puesto</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.puesto_nombre">
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.puesto_nombre || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Sede / Alcance</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.sede_alcance">
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.sede_alcance || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Cantidad de empleados</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.cant_empleados">
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.cant_empleados || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Categoría</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.categoria">
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.categoria || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Dependencia</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.dependencia">
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.dependencia || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Estado</label>
+        <select *ngIf="editando" [(ngModel)]="seleccionado.estado">
+          <option>Borrador</option>
+          <option>En revisión</option>
+          <option>Publicado</option>
+        </select>
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.estado || '—' }}</div>
+      </div>
+    </div>
+
+    <div class="det-field full">
+      <label>Misión del puesto</label>
+      <textarea *ngIf="editando" [(ngModel)]="seleccionado.mision" rows="4"></textarea>
+      <div *ngIf="!editando" class="det-val">{{ seleccionado.mision || '—' }}</div>
+    </div>
+
+    <div class="det-field full">
+      <label>Procedimientos asignados (códigos separados por coma)</label>
+      <input *ngIf="editando" [(ngModel)]="seleccionado.procs_asignados">
+      <div *ngIf="!editando" class="det-val mono">{{ seleccionado.procs_asignados || '—' }}</div>
+    </div>
+
+    <div class="det-field full" *ngIf="seleccionado.revisor_rrhh">
+      <label>Comentario RRHH</label>
+      <div class="det-val rrhh">{{ seleccionado.revisor_rrhh }}</div>
+    </div>
+
+  </div>
+
+</div>

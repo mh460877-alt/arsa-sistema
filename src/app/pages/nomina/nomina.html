@@ -1,68 +1,130 @@
 <div class="panel">
 
+  <!-- HEADER -->
   <div class="ph">
     <div class="ph-left">
-      <div class="ph-eye">Gestión</div>
-      <div class="ph-title">Nómina</div>
+      <div class="ph-eye">Base de datos</div>
+      <div class="ph-title">Nómina de Empleados</div>
     </div>
     <div class="ph-right">
-      <button class="btn btn-s">Exportar CSV</button>
-      <button class="btn btn-p">+ Nuevo empleado</button>
+      <button class="btn btn-s" (click)="exportarCSV()" [disabled]="!hayResultados()">
+        Exportar CSV
+      </button>
+      <button class="btn btn-p">+ Agregar</button>
     </div>
   </div>
 
-  <!-- CARGANDO -->
-  <div *ngIf="cargando" class="loading">Cargando nómina...</div>
 
-  <!-- TABLA -->
-  <div *ngIf="!cargando" class="tbl-wrap">
-    <div class="tbl-toolbar">
+
+  <!-- TOOLBAR -->
+  <div class="tbl-toolbar">
+    <div class="search-wrap">
       <input
         class="tbl-search"
         type="text"
-        placeholder="Buscar por nombre, legajo o puesto..."
+        placeholder="Buscar por nombre, legajo o código..."
         [(ngModel)]="busqueda"
-        (input)="filtrar()">
-      <select class="tbl-filter" [(ngModel)]="filtroSede" (change)="filtrar()">
-        <option value="">Todas las sedes</option>
-        <option *ngFor="let s of sedes" [value]="s">{{ s }}</option>
-      </select>
-      <span class="tbl-count">{{ filtrados.length }} empleados</span>
+        (keydown.enter)="buscar()"
+      />
+      <button class="btn-lupa" (click)="buscar()" title="Buscar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
     </div>
 
-    <table>
+    <select class="tbl-filter" [(ngModel)]="filtroSede" (change)="onFiltroChange()">
+      <option value="">Todas las sedes</option>
+      <option *ngFor="let s of listaSedes" [value]="s.code">{{ s.name }}</option>
+    </select>
+
+    <select class="tbl-filter" [(ngModel)]="filtroFamilia" (change)="onFiltroChange()">
+      <option value="">Todas las familias</option>
+      <option *ngFor="let f of listaFamilias" [value]="f.code">{{ f.name }}</option>
+    </select>
+
+    <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="onFiltroChange()">
+      <option value="">Todos los estados</option>
+      <option value="PENDIENTE">Pendiente</option>
+      <option value="ENTREVISTADO">Entrevistado</option>
+      <option value="REVISIÓN">Revisión</option>
+      <option value="COMPLETADO">Completado</option>
+    </select>
+  </div>
+
+  <!-- SIN BÚSQUEDA -->
+  <div *ngIf="!hayFiltro && !cargando()" class="estado-vacio">
+    <div class="ev-ico">▤</div>
+    <div class="ev-title">Buscá para ver empleados</div>
+    <div class="ev-sub">Ingresá un nombre, legajo o seleccioná un filtro para comenzar</div>
+  </div>
+
+  <!-- CARGANDO -->
+  <div *ngIf="cargando()" class="loading-wrap">
+    <div class="loading-bar"></div>
+    <span>Consultando Sheets...</span>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="errorMsg() && !cargando()" class="estado-error">
+    <span>⚠ {{ errorMsg() }}</span>
+    <button class="btn btn-s" (click)="buscar()">Reintentar</button>
+  </div>
+
+  <!-- TABLA -->
+  <div *ngIf="hayResultados() && !cargando()" class="tbl-wrap">
+    <table class="tbl">
       <thead>
         <tr>
+          <th>Código ARSA</th>
           <th>Legajo</th>
-          <th>Apellido y nombre</th>
-          <th>Puesto</th>
+          <th>Empleado</th>
           <th>Sede</th>
-          <th>Gerencia</th>
-          <th>Nivel CCT</th>
+          <th>Puesto</th>
+          <th>CAT</th>
+          <th>Nivel</th>
           <th>Estado</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let e of filtrados">
-          <td class="mono">{{ e.legajo || '—' }}</td>
-          <td>{{ e.apellido_nombre || '—' }}</td>
-          <td>{{ e.puesto || '—' }}</td>
-          <td>{{ e.sede || '—' }}</td>
-          <td>{{ e.gerencia || '—' }}</td>
-          <td>{{ e.nivel_cct || '—' }}</td>
+        <tr *ngFor="let e of empleados(); trackBy: trackByLegajo">
+          <td class="td-codigo">{{ e.codigo || '—' }}</td>
+          <td class="td-legajo">{{ e.legajo || '—' }}</td>
+          <td class="td-nombre">{{ e.apellido_nombre || '—' }}</td>
+          <td class="td-sede">{{ e.sedeName || e.sede || '—' }}</td>
+          <td class="td-puesto">{{ e.nivel_cct || e.familiaNombre || '—' }}</td>
           <td>
-            <span class="badge" [ngClass]="e.estado_relev === 'Completada' ? 'b-ok' : e.estado_relev === 'En proceso' ? 'b-proc' : 'b-pend'">
-              {{ e.estado_relev || 'Pendiente' }}
+            <span class="badge-cat" [ngClass]="catClass(e.catServicio)">
+              {{ catLabel(e.catServicio) }}
             </span>
           </td>
-        </tr>
-        <tr *ngIf="filtrados.length === 0">
-          <td colspan="7" style="text-align:center;color:var(--gr);padding:24px">
-            No se encontraron empleados
+          <td class="td-nivel">{{ e.nivel || '—' }}</td>
+          <td>
+            <span class="badge-estado" [ngClass]="estadoClass(e.estado)">
+              {{ estadoLabel(e.estado) }}
+            </span>
+          </td>
+          <td>
+            <button class="btn-ver">Ver</button>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <!-- FOOTER TABLA -->
+    <div class="tbl-footer">
+      <span>Mostrando {{ empleados().length }} de 859 empleados</span>
+      <a class="link-sheets" href="#" target="_blank">⇗ Google Sheets</a>
+    </div>
+  </div>
+
+  <!-- SIN RESULTADOS -->
+  <div *ngIf="hayFiltro && !cargando() && !errorMsg() && empleados().length === 0" class="estado-vacio">
+    <div class="ev-ico">○</div>
+    <div class="ev-title">Sin resultados</div>
+    <div class="ev-sub">No se encontraron empleados con esos filtros</div>
+    <button class="btn btn-s" (click)="limpiarFiltros()">Limpiar filtros</button>
   </div>
 
 </div>

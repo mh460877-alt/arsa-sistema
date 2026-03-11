@@ -6,7 +6,7 @@
       <div class="ph-title">Relevamiento</div>
     </div>
     <div class="ph-right">
-      <button class="btn btn-p" (click)="mostrarForm = !mostrarForm">
+      <button class="btn btn-p" (click)="mostrarForm = !mostrarForm; mostrarEdicion = false">
         {{ mostrarForm ? 'Cancelar' : '+ Nueva entrevista' }}
       </button>
     </div>
@@ -15,6 +15,7 @@
   <!-- FORMULARIO NUEVA ENTREVISTA -->
   <div *ngIf="mostrarForm" class="form-card">
     <div class="form-title">Nueva entrevista</div>
+
     <div class="form-grid">
       <div class="form-field">
         <label>Legajo del empleado *</label>
@@ -36,13 +37,95 @@
         </select>
       </div>
     </div>
+
     <div class="form-field">
       <label>Notas</label>
       <textarea [(ngModel)]="nueva.observaciones" placeholder="Observaciones previas..." rows="3"></textarea>
     </div>
+
+    <!-- Links y campos privados — solo admin y rrhh -->
+    <ng-container *ngIf="esPrivilegiado">
+      <div class="form-section-sep"></div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Link perfil sin revisión</label>
+          <input type="url" [(ngModel)]="nueva.link_sin_revision" placeholder="https://docs.google.com/...">
+        </div>
+        <div class="form-field">
+          <label>Link perfil definitivo</label>
+          <input type="url" [(ngModel)]="nueva.link_definitivo" placeholder="https://docs.google.com/...">
+        </div>
+      </div>
+      <div class="form-privado-label">Campos privados — solo Laura y RRHH</div>
+      <div class="form-grid">
+        <div class="form-field">
+          <label>Eneagrama</label>
+          <input type="text" [(ngModel)]="nueva.eneagrama" placeholder="Ej: 3.2">
+        </div>
+        <div class="form-field">
+          <label>Transcripción</label>
+          <input type="text" [(ngModel)]="nueva.transcripcion" placeholder="Link o texto breve">
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Observación privada</label>
+        <textarea [(ngModel)]="nueva.observacion_privada"
+          placeholder="Descripción del perfil cognitivo..." rows="3"></textarea>
+      </div>
+    </ng-container>
+
     <div class="form-actions">
       <button class="btn btn-s" (click)="mostrarForm = false">Cancelar</button>
       <button class="btn btn-p" (click)="guardar()">Guardar entrevista</button>
+    </div>
+  </div>
+
+  <!-- PANEL EDICION DE ENTREVISTA EXISTENTE -->
+  <div *ngIf="mostrarEdicion && editando" class="form-card">
+    <div class="form-title">
+      Editar — <span class="mono-inline">{{ editando.id_entrevista }}</span>
+      <span *ngIf="editando.nombre"> · {{ editando.nombre }}</span>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Link perfil sin revisión</label>
+        <div class="link-input-row">
+          <input type="url" [(ngModel)]="editando.link_sin_revision" placeholder="https://docs.google.com/...">
+          <button class="btn btn-s btn-link" (click)="abrirLink(editando.link_sin_revision)"
+            [disabled]="!editando.link_sin_revision">Abrir</button>
+        </div>
+      </div>
+      <div class="form-field">
+        <label>Link perfil definitivo</label>
+        <div class="link-input-row">
+          <input type="url" [(ngModel)]="editando.link_definitivo" placeholder="https://docs.google.com/...">
+          <button class="btn btn-s btn-link" (click)="abrirLink(editando.link_definitivo)"
+            [disabled]="!editando.link_definitivo">Abrir</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-privado-label">Campos privados — solo Laura y RRHH</div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Eneagrama</label>
+        <input type="text" [(ngModel)]="editando.eneagrama" placeholder="Ej: 6.1">
+      </div>
+      <div class="form-field">
+        <label>Transcripción</label>
+        <input type="text" [(ngModel)]="editando.transcripcion" placeholder="Link o texto breve">
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Observación privada</label>
+      <textarea [(ngModel)]="editando.observacion_privada"
+        placeholder="Descripción del perfil cognitivo..." rows="3"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-s" (click)="cerrarEdicion()">Cancelar</button>
+      <button class="btn btn-p" (click)="guardarEdicion()">Guardar cambios</button>
     </div>
   </div>
 
@@ -52,7 +135,8 @@
   <!-- TABLA -->
   <div *ngIf="!cargando" class="tbl-wrap">
     <div class="tbl-toolbar">
-      <input class="tbl-search" type="text" placeholder="Buscar por legajo o entrevistador..."
+      <input class="tbl-search" type="text"
+        placeholder="Buscar por legajo, nombre o entrevistador..."
         [(ngModel)]="busqueda" (input)="filtrar()">
       <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="filtrar()">
         <option value="">Todos los estados</option>
@@ -68,16 +152,24 @@
         <tr>
           <th>ID</th>
           <th>Legajo</th>
+          <th>Nombre</th>
           <th>Entrevistador</th>
           <th>Fecha</th>
           <th>Modalidad</th>
           <th>Estado</th>
+          <ng-container *ngIf="esPrivilegiado">
+            <th>Borrador</th>
+            <th>Definitivo</th>
+            <th>Enea.</th>
+            <th></th>
+          </ng-container>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let e of filtradas">
           <td class="mono">{{ e.id_entrevista || '—' }}</td>
           <td class="mono">{{ e.legajo || '—' }}</td>
+          <td>{{ e.nombre || '—' }}</td>
           <td>{{ e.entrevistador || '—' }}</td>
           <td>{{ e.fecha || '—' }}</td>
           <td>{{ e.modalidad || '—' }}</td>
@@ -87,9 +179,26 @@
               {{ e.estado || '—' }}
             </span>
           </td>
+          <ng-container *ngIf="esPrivilegiado">
+            <td>
+              <button *ngIf="e.link_sin_revision" class="btn-tbl-link"
+                (click)="abrirLink(e.link_sin_revision)">Borrador</button>
+              <span *ngIf="!e.link_sin_revision" class="tbl-empty">—</span>
+            </td>
+            <td>
+              <button *ngIf="e.link_definitivo" class="btn-tbl-link btn-tbl-def"
+                (click)="abrirLink(e.link_definitivo)">Definitivo</button>
+              <span *ngIf="!e.link_definitivo" class="tbl-empty">—</span>
+            </td>
+            <td class="mono">{{ e.eneagrama || '—' }}</td>
+            <td>
+              <button class="btn-tbl-edit" (click)="abrirEdicion(e)">Editar</button>
+            </td>
+          </ng-container>
         </tr>
         <tr *ngIf="filtradas.length === 0">
-          <td colspan="6" style="text-align:center;color:var(--gr);padding:24px">
+          <td [colSpan]="esPrivilegiado ? 11 : 7"
+            style="text-align:center;color:var(--gr);padding:24px">
             No hay entrevistas registradas
           </td>
         </tr>

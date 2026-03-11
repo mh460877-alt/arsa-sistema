@@ -185,3 +185,107 @@ td.mono {
 @media(max-width: 900px) {
   .form-grid { grid-template-columns: 1fr; }
 }
+
+/* ─── AGREGADO V3 ─────────────────────────────────────────────── */
+
+/* Separador visual dentro del formulario */
+.form-section-sep {
+  border: none;
+  border-top: 1px solid var(--bdr);
+  margin: 16px 0;
+}
+
+/* Etiqueta de sección privada */
+.form-privado-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--ag);
+  margin: 16px 0 10px;
+}
+
+/* Input + botón Abrir en la misma fila */
+.link-input-row {
+  display: flex;
+  gap: 6px;
+}
+
+.link-input-row input {
+  flex: 1;
+}
+
+.btn-link {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-link:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Botones de link en la tabla */
+.btn-tbl-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--ag);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ag);
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+
+.btn-tbl-link:hover {
+  background: var(--ag);
+  color: #fff;
+}
+
+/* Variante verde para definitivo */
+.btn-tbl-def {
+  border-color: var(--azr);
+  color: var(--azr);
+}
+
+.btn-tbl-def:hover {
+  background: var(--azr);
+  color: #fff;
+}
+
+/* Botón editar en tabla */
+.btn-tbl-edit {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border: 1px solid var(--bdr);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--gr);
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+
+.btn-tbl-edit:hover {
+  border-color: var(--dk);
+  color: var(--dk);
+}
+
+/* Celda vacía en tabla */
+.tbl-empty {
+  color: var(--gr);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+}
+
+/* ID inline en título de edición */
+.mono-inline {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--azr);
+}

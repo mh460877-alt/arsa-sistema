@@ -1,23 +1,57 @@
 <div class="login-screen">
+
+  <!-- LADO IZQUIERDO -->
   <div class="ls-left">
     <div class="ls-grid"></div>
+    <div class="ls-deco-line"></div>
+
+    <!-- Líneas diagonales decorativas -->
+    <svg class="ls-deco-lines" width="200" height="600" viewBox="0 0 200 600" fill="none">
+      <line x1="0" y1="0" x2="200" y2="600" stroke="#4BAED4"/>
+      <line x1="30" y1="0" x2="230" y2="600" stroke="#4BAED4"/>
+      <line x1="60" y1="0" x2="260" y2="600" stroke="#4BAED4"/>
+      <line x1="90" y1="0" x2="290" y2="600" stroke="#4BAED4"/>
+      <line x1="120" y1="0" x2="320" y2="600" stroke="#4BAED4"/>
+    </svg>
+
+    <!-- Logo -->
+    <div class="ls-logo">
+      <img src="https://aguasrionegrinas.com/wp-content/uploads/2018/05/logo.png" alt="Aguas Rionegrinas">
+    </div>
+
+    <!-- Cuerpo -->
     <div class="ls-brand">
-      <div class="ls-hex">AR</div>
-      <div class="ls-title">SISTEMA DE<br>GESTIÓN DE<br><em>PERSONAS</em></div>
-      <div class="ls-sub">Plataforma centralizada para la gestión de descriptivos de puesto y procedimientos operativos de ARSA.</div>
+      <div class="ls-eyebrow">Sistema interno</div>
+      <div class="ls-title">Gestión de<br><em>Personas</em></div>
+      <div class="ls-sub">Plataforma centralizada para la gestión de descriptivos de puesto y procedimientos operativos de Aguas Rionegrinas.</div>
       <div class="ls-stats">
-        <div class="ls-stat"><div class="ls-sn">859</div><div class="ls-sl">Empleados</div></div>
-        <div class="ls-stat"><div class="ls-sn">47</div><div class="ls-sl">Localidades</div></div>
-        <div class="ls-stat"><div class="ls-sn">~70</div><div class="ls-sl">Puestos</div></div>
-        <div class="ls-stat"><div class="ls-sn">7</div><div class="ls-sl">Módulos</div></div>
+        <div class="ls-stat">
+          <div class="ls-sn">8<span>59</span></div>
+          <div class="ls-sl">Empleados</div>
+        </div>
+        <div class="ls-stat">
+          <div class="ls-sn">4<span>7</span></div>
+          <div class="ls-sl">Localidades</div>
+        </div>
+        <div class="ls-stat">
+          <div class="ls-sn">~<span>70</span></div>
+          <div class="ls-sl">Puestos</div>
+        </div>
+        <div class="ls-stat">
+          <div class="ls-sn"><span>7</span></div>
+          <div class="ls-sl">Módulos</div>
+        </div>
       </div>
     </div>
-    <div class="ls-footer">Escencial Consultora · Río Negro 2026</div>
+
+    <!-- Footer -->
+    <div class="ls-footer">Escencial Consultora · Río Negro · 2026</div>
   </div>
 
+  <!-- LADO DERECHO -->
   <div class="ls-right">
     <div class="ls-form-eye">Acceso al sistema</div>
-    <div class="ls-form-title">Bienvenido a ARSA</div>
+    <div class="ls-form-title">Bienvenido<br>a ARSA</div>
     <div class="ls-form-sub">Ingresá con tu usuario y contraseña asignados.</div>
 
     <div class="ls-field">
@@ -29,17 +63,27 @@
       <input class="ls-input" type="password" placeholder="••••••••" [(ngModel)]="password">
     </div>
 
-    <button class="ls-submit" (click)="ingresar()">INGRESAR →</button>
+    <button class="ls-submit" (click)="ingresar()">
+      Ingresar
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </button>
 
     <div class="ls-roles">
-      <div class="ls-roles-title">Acceso rápido — demo</div>
+      <div class="ls-roles-sep">
+        <span class="ls-roles-title">Acceso rápido — demo</span>
+      </div>
       <div class="ls-role-btns">
-        <div class="ls-rb" (click)="loginRapido('admin')">🛡 Administrador</div>
-        <div class="ls-rb" (click)="loginRapido('rrhh')">👤 RRHH</div>
-        <div class="ls-rb" (click)="loginRapido('empleado')">🏭 Empleado</div>
+        <div class="ls-rb" (click)="loginRapido('admin')">Administrador</div>
+        <div class="ls-rb" (click)="loginRapido('rrhh')">RRHH</div>
+        <div class="ls-rb" (click)="loginRapido('empleado')">Empleado</div>
       </div>
     </div>
 
     <div class="ls-error" *ngIf="error">{{ error }}</div>
+
+    <div class="ls-form-footer">Aguas Rionegrinas S.A. · Uso interno</div>
   </div>
+
 </div>

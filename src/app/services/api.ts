@@ -22,6 +22,11 @@ export class ApiService {
     return this.http.get(this.url, { params });
   }
 
+  statsHistorico(): Observable<any> {
+    const params = new HttpParams().set('action', 'statsHistorico');
+    return this.http.get(this.url, { params });
+  }
+
   leerTabla(tab: string): Observable<any> {
     const params = new HttpParams()
       .set('action', 'read')

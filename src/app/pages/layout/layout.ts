@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
@@ -8,7 +8,8 @@ import { filter } from 'rxjs/operators';
   standalone: true,
   imports: [CommonModule, RouterModule],
   templateUrl: './layout.html',
-  styleUrl: './layout.css'
+  styleUrl: './layout.css',
+  encapsulation: ViewEncapsulation.None
 })
 export class LayoutComponent implements OnInit {
 
@@ -21,29 +22,29 @@ export class LayoutComponent implements OnInit {
     {
       nombre: 'General',
       items: [
-        { icon: '◈', label: 'Dashboard', ruta: '/dashboard', bloqueado: false }
+        { label: 'Dashboard', ruta: '/dashboard', bloqueado: false, icon: 'dashboard' }
       ]
     },
     {
       nombre: 'Gestión',
       items: [
-        { icon: '◻', label: 'Nómina',         ruta: '/nomina',         bloqueado: false },
-        { icon: '📝', label: 'Relevamiento',   ruta: '/relevamiento',   bloqueado: false },
-        { icon: '📄', label: 'Descriptivos',   ruta: '/descriptivos',   bloqueado: false },
-        { icon: '📋', label: 'Procedimientos', ruta: '/procedimientos', bloqueado: false },
+        { label: 'Nómina',         ruta: '/nomina',         bloqueado: false, icon: 'nomina' },
+        { label: 'Relevamiento',   ruta: '/relevamiento',   bloqueado: false, icon: 'relevamiento' },
+        { label: 'Descriptivos',   ruta: '/descriptivos',   bloqueado: false, icon: 'descriptivos' },
+        { label: 'Procedimientos', ruta: '/procedimientos', bloqueado: false, icon: 'procedimientos' },
       ]
     },
     {
       nombre: 'Estructura',
       items: [
-        { icon: '◎', label: 'Organigrama', ruta: '/organigrama', bloqueado: false }
+        { label: 'Organigrama', ruta: '/organigrama', bloqueado: false, icon: 'organigrama' }
       ]
     },
     {
       nombre: 'Sistema',
       items: [
-        { icon: '👥', label: 'Usuarios',     ruta: '/usuarios', bloqueado: false },
-        { icon: '🔒', label: 'Capacitación', ruta: '',          bloqueado: true  }
+        { label: 'Usuarios',     ruta: '/usuarios', bloqueado: false, icon: 'usuarios' },
+        { label: 'Capacitación', ruta: '',          bloqueado: true,  icon: 'capacitacion' }
       ]
     }
   ];
@@ -52,7 +53,7 @@ export class LayoutComponent implements OnInit {
     {
       nombre: 'Mi Puesto',
       items: [
-        { icon: '📄', label: 'Mi Descriptivo', ruta: '/mi-descriptivo', bloqueado: false }
+        { label: 'Mi Descriptivo', ruta: '/mi-descriptivo', bloqueado: false, icon: 'descriptivos' }
       ]
     }
   ];

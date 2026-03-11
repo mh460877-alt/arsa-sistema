@@ -1,69 +1,149 @@
 <div class="panel">
 
   <div class="ph">
-    <div class="ph-left">
-      <div class="ph-eye">Resumen general</div>
-      <div class="ph-title">Dashboard</div>
-    </div>
+    <div class="ph-eye">Resumen general</div>
+    <div class="ph-title">Dashboard</div>
   </div>
 
   <!-- CARGANDO -->
-  <div *ngIf="cargando" class="loading">Cargando datos...</div>
-
-  <!-- KPIS -->
-  <div *ngIf="!cargando" class="kpi-row">
-    <div class="kpi">
-      <div class="kpi-val">{{ stats.total_empleados }}</div>
-      <div class="kpi-lbl">Total empleados</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:100%"></div></div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-val">{{ stats.total_entrevistas }}</div>
-      <div class="kpi-lbl">Entrevistas realizadas</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:60%"></div></div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-val">{{ stats.completadas }}</div>
-      <div class="kpi-lbl">Entrevistas completadas</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:40%"></div></div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-val">{{ stats.desc_publicados }}</div>
-      <div class="kpi-lbl">Descriptivos publicados</div>
-      <div class="kpi-bar"><div class="kpi-bar-fill" style="width:20%"></div></div>
-    </div>
+  <div *ngIf="cargando" class="db-loading">
+    <span class="db-loading-dot"></span>
+    <span class="db-loading-dot"></span>
+    <span class="db-loading-dot"></span>
   </div>
 
-  <!-- CARDS -->
-  <div *ngIf="!cargando" class="cards-2">
-    <div class="card">
-      <div class="card-title">Estado del relevamiento</div>
-      <div class="card-sub">Avance de entrevistas por estado</div>
-      <div class="prog-row">
-        <div class="prog-lbl">Completadas</div>
-        <div class="prog-bar"><div class="prog-fill" [style.width]="stats.total_entrevistas > 0 ? (stats.completadas / stats.total_entrevistas * 100) + '%' : '0%'"></div></div>
-        <div class="prog-val">{{ stats.completadas }}</div>
-      </div>
-      <div class="prog-row">
-        <div class="prog-lbl">Pendientes</div>
-        <div class="prog-bar"><div class="prog-fill" style="width:100%"></div></div>
-        <div class="prog-val">{{ stats.total_entrevistas - stats.completadas }}</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-title">Descriptivos de puesto</div>
-      <div class="card-sub">Estado de publicación</div>
-      <div class="prog-row">
-        <div class="prog-lbl">Publicados</div>
-        <div class="prog-bar"><div class="prog-fill" [style.width]="'100%'"></div></div>
-        <div class="prog-val">{{ stats.desc_publicados }}</div>
-      </div>
-      <div class="prog-row">
-        <div class="prog-lbl">En proceso</div>
-        <div class="prog-bar"><div class="prog-fill" style="width:60%"></div></div>
-        <div class="prog-val">—</div>
-      </div>
-    </div>
-  </div>
+  <ng-container *ngIf="!cargando">
 
+    <!-- KPI CARDS -->
+    <div class="db-kpi-grid">
+
+      <div class="db-kpi c1">
+        <div class="db-kpi-label">Total empleados</div>
+        <div class="db-kpi-value">{{ kv1 | number }}</div>
+        <div class="db-kpi-sub">47 localidades</div>
+        <div class="db-kpi-bar"><div style="width:100%; background:#4BAED4"></div></div>
+      </div>
+
+      <div class="db-kpi c2">
+        <div class="db-kpi-label">Entrevistas</div>
+        <div class="db-kpi-value">{{ kv2 | number }}</div>
+        <div class="db-kpi-sub">realizadas</div>
+        <div class="db-kpi-bar"><div [style.width]="stats.total_empleados > 0 ? (stats.total_entrevistas / stats.total_empleados * 100) + '%' : '0%'" style="background:#2D7D5A"></div></div>
+      </div>
+
+      <div class="db-kpi c3">
+        <div class="db-kpi-label">Completadas</div>
+        <div class="db-kpi-value">{{ kv3 | number }}</div>
+        <div class="db-kpi-sub">entrevistas</div>
+        <div class="db-kpi-bar"><div [style.width]="stats.total_entrevistas > 0 ? (stats.completadas / stats.total_entrevistas * 100) + '%' : '0%'" style="background:#E8A020"></div></div>
+      </div>
+
+      <div class="db-kpi c4">
+        <div class="db-kpi-label">Descriptivos</div>
+        <div class="db-kpi-value">{{ kv4 | number }}</div>
+        <div class="db-kpi-sub">publicados</div>
+        <div class="db-kpi-bar"><div [style.width]="stats.total_empleados > 0 ? (stats.desc_publicados / stats.total_empleados * 100) + '%' : '0%'" style="background:#A78BFA"></div></div>
+      </div>
+
+    </div>
+
+    <!-- CHARTS FILA 1 -->
+    <div class="db-charts-row">
+
+      <div class="db-chart-card db-wide">
+        <div class="db-chart-header">
+          <div>
+            <div class="db-chart-title">Entrevistas por mes</div>
+            <div class="db-chart-sub">Evolución mensual del relevamiento</div>
+          </div>
+          <span class="db-chart-badge">2026</span>
+        </div>
+        <div class="db-chart-wrap">
+          <canvas id="db-chart-bars"></canvas>
+        </div>
+      </div>
+
+      <div class="db-chart-card">
+        <div class="db-chart-header">
+          <div>
+            <div class="db-chart-title">Estado</div>
+            <div class="db-chart-sub">Distribución por estado</div>
+          </div>
+        </div>
+        <div style="max-width:140px; margin:0 auto;">
+          <canvas id="db-chart-donut"></canvas>
+        </div>
+        <div class="db-donut-legend">
+          <div class="db-dl-item">
+            <div class="db-dl-dot" style="background:#4BAED4"></div>
+            <span class="db-dl-label">Completadas</span>
+            <span class="db-dl-val">{{ stats.completadas }}</span>
+          </div>
+          <div class="db-dl-item">
+            <div class="db-dl-dot" style="background:#EEF5FA; border:1px solid #D0E8F5"></div>
+            <span class="db-dl-label">Pendientes</span>
+            <span class="db-dl-val">{{ stats.total_entrevistas - stats.completadas }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CHARTS FILA 2 -->
+    <div class="db-charts-row db-two-col">
+
+      <div class="db-chart-card">
+        <div class="db-chart-header">
+          <div>
+            <div class="db-chart-title">Avance del relevamiento</div>
+            <div class="db-chart-sub">Completadas vs pendientes</div>
+          </div>
+        </div>
+        <div class="db-prog-list">
+          <div class="db-prog-row">
+            <span class="db-prog-label">Completadas</span>
+            <div class="db-prog-bar-wrap">
+              <div class="db-prog-fill prog-fill-anim"
+                   [attr.data-w]="pctCompletadas"
+                   style="background:#4BAED4; width:0%"></div>
+            </div>
+            <span class="db-prog-val">{{ stats.completadas }}</span>
+          </div>
+          <div class="db-prog-row">
+            <span class="db-prog-label">En proceso</span>
+            <div class="db-prog-bar-wrap">
+              <div class="db-prog-fill prog-fill-anim"
+                   data-w="60%"
+                   style="background:#E8A020; width:0%"></div>
+            </div>
+            <span class="db-prog-val">—</span>
+          </div>
+          <div class="db-prog-row">
+            <span class="db-prog-label">Pendientes</span>
+            <div class="db-prog-bar-wrap">
+              <div class="db-prog-fill prog-fill-anim"
+                   data-w="100%"
+                   style="background:#EEF5FA; border:1px solid #D0E8F5; width:0%"></div>
+            </div>
+            <span class="db-prog-val">{{ stats.total_entrevistas - stats.completadas }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="db-chart-card">
+        <div class="db-chart-header">
+          <div>
+            <div class="db-chart-title">Descriptivos publicados</div>
+            <div class="db-chart-sub">Acumulado mensual</div>
+          </div>
+          <span class="db-chart-badge">Meta: 70</span>
+        </div>
+        <div class="db-chart-wrap">
+          <canvas id="db-chart-line"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+  </ng-container>
 </div>

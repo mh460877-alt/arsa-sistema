@@ -14,8 +14,6 @@
     </div>
   </div>
 
-
-
   <!-- TOOLBAR -->
   <div class="tbl-toolbar">
     <div class="search-wrap">
@@ -24,9 +22,10 @@
         type="text"
         placeholder="Buscar por nombre, legajo o código..."
         [(ngModel)]="busqueda"
-        (keydown.enter)="buscar()"
+        (ngModelChange)="buscar()"
+        (keydown.enter)="aplicarFiltros()"
       />
-      <button class="btn-lupa" (click)="buscar()" title="Buscar">
+      <button class="btn-lupa" (click)="aplicarFiltros()" title="Buscar">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
@@ -52,13 +51,6 @@
     </select>
   </div>
 
-  <!-- SIN BÚSQUEDA -->
-  <div *ngIf="!hayFiltro && !cargando()" class="estado-vacio">
-    <div class="ev-ico">▤</div>
-    <div class="ev-title">Buscá para ver empleados</div>
-    <div class="ev-sub">Ingresá un nombre, legajo o seleccioná un filtro para comenzar</div>
-  </div>
-
   <!-- CARGANDO -->
   <div *ngIf="cargando()" class="loading-wrap">
     <div class="loading-bar"></div>
@@ -68,11 +60,11 @@
   <!-- ERROR -->
   <div *ngIf="errorMsg() && !cargando()" class="estado-error">
     <span>⚠ {{ errorMsg() }}</span>
-    <button class="btn btn-s" (click)="buscar()">Reintentar</button>
+    <button class="btn btn-s" (click)="refrescar()">Reintentar</button>
   </div>
 
   <!-- TABLA -->
-  <div *ngIf="hayResultados() && !cargando()" class="tbl-wrap">
+  <div *ngIf="!cargando() && !errorMsg() && hayResultados()" class="tbl-wrap">
     <table class="tbl">
       <thead>
         <tr>
@@ -88,21 +80,21 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let e of empleados(); trackBy: trackByLegajo">
-          <td class="td-codigo">{{ e.codigo || '—' }}</td>
+        <tr *ngFor="let e of empleadosFiltrados(); trackBy: trackByLegajo">
+          <td class="td-codigo">{{ e.codigo_arsa || '—' }}</td>
           <td class="td-legajo">{{ e.legajo || '—' }}</td>
           <td class="td-nombre">{{ e.apellido_nombre || '—' }}</td>
-          <td class="td-sede">{{ e.sedeName || e.sede || '—' }}</td>
-          <td class="td-puesto">{{ e.nivel_cct || e.familiaNombre || '—' }}</td>
+          <td class="td-sede">{{ e.sede || '—' }}</td>
+          <td class="td-puesto">{{ e.puesto || '—' }}</td>
           <td>
-            <span class="badge-cat" [ngClass]="catClass(e.catServicio)">
-              {{ catLabel(e.catServicio) }}
+            <span class="badge-cat" [ngClass]="catClass(e.categoria)">
+              {{ catLabel(e.categoria) }}
             </span>
           </td>
-          <td class="td-nivel">{{ e.nivel || '—' }}</td>
+          <td class="td-nivel">{{ e.nivel_cct || '—' }}</td>
           <td>
-            <span class="badge-estado" [ngClass]="estadoClass(e.estado)">
-              {{ estadoLabel(e.estado) }}
+            <span class="badge-estado" [ngClass]="estadoClass(e.estado_relev)">
+              {{ estadoLabel(e.estado_relev) }}
             </span>
           </td>
           <td>
@@ -114,13 +106,12 @@
 
     <!-- FOOTER TABLA -->
     <div class="tbl-footer">
-      <span>Mostrando {{ empleados().length }} de 859 empleados</span>
-      <a class="link-sheets" href="#" target="_blank">⇗ Google Sheets</a>
+      <span>Mostrando {{ empleadosFiltrados().length }} empleados</span>
     </div>
   </div>
 
   <!-- SIN RESULTADOS -->
-  <div *ngIf="hayFiltro && !cargando() && !errorMsg() && empleados().length === 0" class="estado-vacio">
+  <div *ngIf="!cargando() && !errorMsg() && !hayResultados() && todosLosEmpleados.length > 0" class="estado-vacio">
     <div class="ev-ico">○</div>
     <div class="ev-title">Sin resultados</div>
     <div class="ev-sub">No se encontraron empleados con esos filtros</div>

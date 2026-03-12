@@ -11,7 +11,6 @@ export interface Empleado {
   sede:            string;
   puesto:          string;
   categoria:       string;
-  nivel_cct:       string;
   estado_relev:    string;
 }
 
@@ -85,6 +84,15 @@ export class Nomina implements OnInit, OnDestroy {
   todosLosEmpleados: Empleado[] = [];
   private busquedaSubject = new Subject<void>();
   private destroy$        = new Subject<void>();
+  rolUsuario: string = '';
+
+  modalAbierto = false;
+  guardando    = false;
+  errorModal   = '';
+  form: any = {
+    legajo: '', codigo_arsa: '', apellido_nombre: '',
+    sede: '', puesto: '', categoria: '', estado_relev: 'PENDIENTE'
+  };
 
   constructor(private api: ApiService) {}
 
@@ -95,6 +103,14 @@ export class Nomina implements OnInit, OnDestroy {
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(() => this.aplicarFiltros());
+
+const raw = localStorage.getItem('usuario');
+if (raw) {
+    this.rolUsuario = (JSON.parse(raw).rol || '').toLowerCase();
+}
+if (this.rolUsuario === 'rrhh') {
+    this.filtroEstado = 'COMPLETADO';
+}
 
     // Cargar todos los empleados al iniciar
     this.cargarNomina();
@@ -120,8 +136,7 @@ export class Nomina implements OnInit, OnDestroy {
             sede:            r.sede            || '—',
             puesto:          r.puesto          || '—',
             categoria:       r.categoria       || '—',
-            nivel_cct:       r.nivel_cct       || '—',
-            estado_relev:    r.estado_relev    || 'PENDIENTE',
+            estado_relev:    r.estado_relev === 'PRESENTADO A RRHH' ? 'COMPLETADO' : (r.estado_relev || 'PENDIENTE'),
           }));
           this.aplicarFiltros();
         } else {
@@ -204,10 +219,10 @@ export class Nomina implements OnInit, OnDestroy {
   // ── Exportar CSV ──────────────────────────────────────────────────
   exportarCSV() {
     if (!this.hayResultados()) return;
-    const headers = ['Código ARSA', 'Legajo', 'Empleado', 'Sede', 'Puesto', 'CAT', 'Nivel', 'Estado'];
+    const headers = ['Código ARSA', 'Legajo', 'Empleado', 'Sede', 'Puesto', 'CAT', 'Estado'];
     const filas   = this.empleadosFiltrados().map(e => [
       e.codigo_arsa, e.legajo, e.apellido_nombre,
-      e.sede, e.puesto, e.categoria, e.nivel_cct, e.estado_relev
+      e.sede, e.puesto, e.categoria, e.estado_relev
     ]);
     const csv = [headers, ...filas]
       .map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(','))
@@ -235,8 +250,8 @@ export class Nomina implements OnInit, OnDestroy {
 
   estadoLabel(e: string): string {
     const m: Record<string, string> = {
-      'COMPLETADO':   'Completado',
-      'COMPLETADA':   'Completado',
+      'COMPLETADO':   'Presentado a RRHH',
+      'COMPLETADA':   'Presentado a RRHH',
       'REVISIÓN':     'Revisión',
       'ENTREVISTADO': 'Entrevistado',
       'EN PROCESO':   'En proceso',
@@ -258,5 +273,37 @@ export class Nomina implements OnInit, OnDestroy {
     if (c === 'CAT3') return 'CAT 3';
     if (c === 'CAT4') return 'CAT 4';
     return cat || '—';
+  }
+
+  formVacio() {
+    return {
+      legajo: '', codigo_arsa: '', apellido_nombre: '',
+      sede: '', puesto: '', categoria: '', estado_relev: 'PENDIENTE'
+    };
+  }
+
+  abrirModal() {
+    this.form = this.formVacio();
+    this.errorModal = '';
+    this.modalAbierto = true;
+  }
+
+  cerrarModal() {
+    this.modalAbierto = false;
+  }
+
+  guardar() {
+    if (!this.form.legajo || !this.form.apellido_nombre) {
+      this.errorModal = 'Legajo y nombre son obligatorios.';
+      return;
+    }
+    this.guardando = true;
+    this.errorModal = '';
+    this.api.post({ action: 'createEmpleado', data: this.form }).subscribe({ error: () => {} });
+    setTimeout(() => {
+      this.guardando = false;
+      this.cerrarModal();
+      this.refrescar();
+    }, 2000);
   }
 }

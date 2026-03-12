@@ -51,7 +51,10 @@ export class Relevamiento implements OnInit {
     const raw = localStorage.getItem('usuario');
     if (raw) {
       const u = JSON.parse(raw);
-      this.rolUsuario = u.rol || '';
+      this.rolUsuario = (u.rol || '').toLowerCase();
+    }
+    if (this.rolUsuario === 'rrhh') {
+      this.filtroEstado = 'COMPLETADO';
     }
     this.cargar();
   }

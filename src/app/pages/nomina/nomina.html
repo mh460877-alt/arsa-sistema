@@ -7,10 +7,10 @@
       <div class="ph-title">Nómina de Empleados</div>
     </div>
     <div class="ph-right">
-      <button class="btn btn-s" (click)="exportarCSV()" [disabled]="!hayResultados()">
+      <button class="btn btn-s" (click)="exportarCSV()" [disabled]="!hayResultados()" *ngIf="rolUsuario !== 'rrhh'">
         Exportar CSV
       </button>
-      <button class="btn btn-p">+ Agregar</button>
+      <button class="btn btn-p" (click)="abrirModal()" *ngIf="rolUsuario !== 'rrhh'">+ Agregar</button>
     </div>
   </div>
 
@@ -42,12 +42,12 @@
       <option *ngFor="let f of listaFamilias" [value]="f.code">{{ f.name }}</option>
     </select>
 
-    <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="onFiltroChange()">
+    <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="onFiltroChange()" *ngIf="rolUsuario !== 'rrhh'">
       <option value="">Todos los estados</option>
       <option value="PENDIENTE">Pendiente</option>
       <option value="ENTREVISTADO">Entrevistado</option>
       <option value="REVISIÓN">Revisión</option>
-      <option value="COMPLETADO">Completado</option>
+      <option value="COMPLETADO">Presentado a RRHH</option>
     </select>
   </div>
 
@@ -74,7 +74,6 @@
           <th>Sede</th>
           <th>Puesto</th>
           <th>CAT</th>
-          <th>Nivel</th>
           <th>Estado</th>
           <th></th>
         </tr>
@@ -91,7 +90,6 @@
               {{ catLabel(e.categoria) }}
             </span>
           </td>
-          <td class="td-nivel">{{ e.nivel_cct || '—' }}</td>
           <td>
             <span class="badge-estado" [ngClass]="estadoClass(e.estado_relev)">
               {{ estadoLabel(e.estado_relev) }}

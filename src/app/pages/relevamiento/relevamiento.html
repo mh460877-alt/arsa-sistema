@@ -6,7 +6,7 @@
       <div class="ph-title">Relevamiento</div>
     </div>
     <div class="ph-right">
-      <button class="btn btn-p" (click)="mostrarForm = !mostrarForm; mostrarEdicion = false">
+      <button class="btn btn-p" (click)="mostrarForm = !mostrarForm; mostrarEdicion = false" *ngIf="rolUsuario !== 'rrhh'">
         {{ mostrarForm ? 'Cancelar' : '+ Nueva entrevista' }}
       </button>
     </div>

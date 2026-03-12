@@ -11,7 +11,6 @@ export interface Empleado {
   sede:            string;
   puesto:          string;
   categoria:       string;
-  nivel_cct:       string;
   estado_relev:    string;
 }
 
@@ -120,7 +119,6 @@ export class Nomina implements OnInit, OnDestroy {
             sede:            r.sede            || '—',
             puesto:          r.puesto          || '—',
             categoria:       r.categoria       || '—',
-            nivel_cct:       r.nivel_cct       || '—',
             estado_relev:    r.estado_relev    || 'PENDIENTE',
           }));
           this.aplicarFiltros();
@@ -204,10 +202,10 @@ export class Nomina implements OnInit, OnDestroy {
   // ── Exportar CSV ──────────────────────────────────────────────────
   exportarCSV() {
     if (!this.hayResultados()) return;
-    const headers = ['Código ARSA', 'Legajo', 'Empleado', 'Sede', 'Puesto', 'CAT', 'Nivel', 'Estado'];
+    const headers = ['Código ARSA', 'Legajo', 'Empleado', 'Sede', 'Puesto', 'CAT', 'Estado'];
     const filas   = this.empleadosFiltrados().map(e => [
       e.codigo_arsa, e.legajo, e.apellido_nombre,
-      e.sede, e.puesto, e.categoria, e.nivel_cct, e.estado_relev
+      e.sede, e.puesto, e.categoria, e.estado_relev
     ]);
     const csv = [headers, ...filas]
       .map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(','))

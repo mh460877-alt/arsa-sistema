@@ -74,7 +74,6 @@
           <th>Sede</th>
           <th>Puesto</th>
           <th>CAT</th>
-          <th>Nivel</th>
           <th>Estado</th>
           <th></th>
         </tr>
@@ -91,7 +90,6 @@
               {{ catLabel(e.categoria) }}
             </span>
           </td>
-          <td class="td-nivel">{{ e.nivel_cct || '—' }}</td>
           <td>
             <span class="badge-estado" [ngClass]="estadoClass(e.estado_relev)">
               {{ estadoLabel(e.estado_relev) }}

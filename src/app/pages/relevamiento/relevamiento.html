@@ -1,209 +1,393 @@
 <div class="panel">
 
+  <!-- HEADER -->
   <div class="ph">
     <div class="ph-left">
-      <div class="ph-eye">Gestión</div>
+      <div class="ph-eye">Trabajo de campo</div>
       <div class="ph-title">Relevamiento</div>
     </div>
     <div class="ph-right">
-      <button class="btn btn-p" (click)="mostrarForm = !mostrarForm; mostrarEdicion = false">
-        {{ mostrarForm ? 'Cancelar' : '+ Nueva entrevista' }}
+      <button class="btn btn-s" (click)="exportarCSV()" [disabled]="!hayResultados()">
+        Exportar CSV
       </button>
     </div>
   </div>
 
-  <!-- FORMULARIO NUEVA ENTREVISTA -->
-  <div *ngIf="mostrarForm" class="form-card">
-    <div class="form-title">Nueva entrevista</div>
-
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Legajo del empleado *</label>
-        <input type="text" [(ngModel)]="nueva.legajo" placeholder="Ej: 001">
-      </div>
-      <div class="form-field">
-        <label>Entrevistador</label>
-        <input type="text" [(ngModel)]="nueva.entrevistador" placeholder="Nombre del entrevistador">
-      </div>
-      <div class="form-field">
-        <label>Fecha</label>
-        <input type="date" [(ngModel)]="nueva.fecha">
-      </div>
-      <div class="form-field">
-        <label>Modalidad</label>
-        <select [(ngModel)]="nueva.modalidad">
-          <option>Presencial</option>
-          <option>Virtual</option>
-        </select>
-      </div>
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num">{{ stats.total }}</div>
+      <div class="stat-label">Total</div>
     </div>
-
-    <div class="form-field">
-      <label>Notas</label>
-      <textarea [(ngModel)]="nueva.observaciones" placeholder="Observaciones previas..." rows="3"></textarea>
+    <div class="stat-card s-pend">
+      <div class="stat-num">{{ stats.pendiente }}</div>
+      <div class="stat-label">Pendiente</div>
     </div>
-
-    <!-- Links y campos privados — solo admin y rrhh -->
-    <ng-container *ngIf="esPrivilegiado">
-      <div class="form-section-sep"></div>
-      <div class="form-grid">
-        <div class="form-field">
-          <label>Link perfil sin revisión</label>
-          <input type="url" [(ngModel)]="nueva.link_sin_revision" placeholder="https://docs.google.com/...">
-        </div>
-        <div class="form-field">
-          <label>Link perfil definitivo</label>
-          <input type="url" [(ngModel)]="nueva.link_definitivo" placeholder="https://docs.google.com/...">
-        </div>
+    <div class="stat-card s-proc">
+      <div class="stat-num">{{ stats.entrevistado }}</div>
+      <div class="stat-label">Entrevistado</div>
+    </div>
+    <div class="stat-card s-rev">
+      <div class="stat-num">{{ stats.revision }}</div>
+      <div class="stat-label">Revisión</div>
+    </div>
+    <div class="stat-card s-ok">
+      <div class="stat-num">{{ stats.completado }}</div>
+      <div class="stat-label">Completado</div>
+    </div>
+    <div class="stat-card s-avance">
+      <div class="stat-avance-top">
+        <div class="stat-num">{{ stats.avance }}%</div>
+        <div class="stat-label">Avance general</div>
       </div>
-      <div class="form-privado-label">Campos privados — solo Laura y RRHH</div>
-      <div class="form-grid">
-        <div class="form-field">
-          <label>Eneagrama</label>
-          <input type="text" [(ngModel)]="nueva.eneagrama" placeholder="Ej: 3.2">
-        </div>
-        <div class="form-field">
-          <label>Transcripción</label>
-          <input type="text" [(ngModel)]="nueva.transcripcion" placeholder="Link o texto breve">
-        </div>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="stats.avance"></div>
       </div>
-      <div class="form-field">
-        <label>Observación privada</label>
-        <textarea [(ngModel)]="nueva.observacion_privada"
-          placeholder="Descripción del perfil cognitivo..." rows="3"></textarea>
-      </div>
-    </ng-container>
-
-    <div class="form-actions">
-      <button class="btn btn-s" (click)="mostrarForm = false">Cancelar</button>
-      <button class="btn btn-p" (click)="guardar()">Guardar entrevista</button>
     </div>
   </div>
 
-  <!-- PANEL EDICION DE ENTREVISTA EXISTENTE -->
-  <div *ngIf="mostrarEdicion && editando" class="form-card">
-    <div class="form-title">
-      Editar — <span class="mono-inline">{{ editando.id_entrevista }}</span>
-      <span *ngIf="editando.nombre"> · {{ editando.nombre }}</span>
+  <!-- TOOLBAR -->
+  <div class="tbl-toolbar">
+    <div class="search-wrap">
+      <input
+        class="tbl-search"
+        type="text"
+        placeholder="Buscar por nombre o legajo..."
+        [(ngModel)]="busqueda"
+        (keydown.enter)="buscar()"
+      />
+      <button class="btn-lupa" (click)="buscar()" title="Buscar">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+          fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
     </div>
+    <select class="tbl-filter" [(ngModel)]="filtroSede"    (change)="onFiltroChange()">
+      <option value="">Todas las sedes</option>
+      <option *ngFor="let s of listaSedes"    [value]="s.code">{{ s.name }}</option>
+    </select>
+    <select class="tbl-filter" [(ngModel)]="filtroFamilia" (change)="onFiltroChange()">
+      <option value="">Todas las familias</option>
+      <option *ngFor="let f of listaFamilias" [value]="f.code">{{ f.name }}</option>
+    </select>
+    <select class="tbl-filter" [(ngModel)]="filtroEstado"  (change)="onFiltroChange()">
+      <option value="">Todos los estados</option>
+      <option value="PENDIENTE">Pendiente</option>
+      <option value="ENTREVISTADO">Entrevistado</option>
+      <option value="REVISIÓN">Revisión</option>
+      <option value="COMPLETADO">Completado</option>
+    </select>
+  </div>
 
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Link perfil sin revisión</label>
-        <div class="link-input-row">
-          <input type="url" [(ngModel)]="editando.link_sin_revision" placeholder="https://docs.google.com/...">
-          <button class="btn btn-s btn-link" (click)="abrirLink(editando.link_sin_revision)"
-            [disabled]="!editando.link_sin_revision">Abrir</button>
-        </div>
-      </div>
-      <div class="form-field">
-        <label>Link perfil definitivo</label>
-        <div class="link-input-row">
-          <input type="url" [(ngModel)]="editando.link_definitivo" placeholder="https://docs.google.com/...">
-          <button class="btn btn-s btn-link" (click)="abrirLink(editando.link_definitivo)"
-            [disabled]="!editando.link_definitivo">Abrir</button>
-        </div>
-      </div>
-    </div>
+  <!-- AVISO — completado requiere link definitivo -->
+  <div class="aviso-regla" *ngIf="puedeEditar">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    Para marcar como <strong>Completado</strong> el perfil debe tener el link definitivo cargado.
+    Al completarse se publica automáticamente en <strong>Descriptivos de Puesto</strong>.
+  </div>
 
-    <div class="form-privado-label">Campos privados — solo Laura y RRHH</div>
-    <div class="form-grid">
-      <div class="form-field">
-        <label>Eneagrama</label>
-        <input type="text" [(ngModel)]="editando.eneagrama" placeholder="Ej: 6.1">
-      </div>
-      <div class="form-field">
-        <label>Transcripción</label>
-        <input type="text" [(ngModel)]="editando.transcripcion" placeholder="Link o texto breve">
-      </div>
-    </div>
-    <div class="form-field">
-      <label>Observación privada</label>
-      <textarea [(ngModel)]="editando.observacion_privada"
-        placeholder="Descripción del perfil cognitivo..." rows="3"></textarea>
-    </div>
-
-    <div class="form-actions">
-      <button class="btn btn-s" (click)="cerrarEdicion()">Cancelar</button>
-      <button class="btn btn-p" (click)="guardarEdicion()">Guardar cambios</button>
-    </div>
+  <!-- SIN BÚSQUEDA -->
+  <div *ngIf="!hayFiltro && !cargando()" class="estado-vacio">
+    <div class="ev-ico">◎</div>
+    <div class="ev-title">Seleccioná un filtro para comenzar</div>
+    <div class="ev-sub">Buscá por nombre, legajo, sede, familia o estado de avance</div>
   </div>
 
   <!-- CARGANDO -->
-  <div *ngIf="cargando" class="loading">Cargando entrevistas...</div>
+  <div *ngIf="cargando()" class="loading-wrap">
+    <div class="loading-bar"></div>
+    <span>Consultando Sheets...</span>
+  </div>
+
+  <!-- ERROR -->
+  <div *ngIf="errorMsg() && !cargando()" class="estado-error">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    <span>{{ errorMsg() }}</span>
+    <button class="btn btn-s btn-sm" (click)="buscar()">Reintentar</button>
+  </div>
 
   <!-- TABLA -->
-  <div *ngIf="!cargando" class="tbl-wrap">
-    <div class="tbl-toolbar">
-      <input class="tbl-search" type="text"
-        placeholder="Buscar por legajo, nombre o entrevistador..."
-        [(ngModel)]="busqueda" (input)="filtrar()">
-      <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="filtrar()">
-        <option value="">Todos los estados</option>
-        <option>Agendada</option>
-        <option>En proceso</option>
-        <option>Completada</option>
-      </select>
-      <span class="tbl-count">{{ filtradas.length }} entrevistas</span>
-    </div>
-
-    <table>
+  <div *ngIf="hayResultados() && !cargando()" class="tbl-wrap">
+    <table class="tbl">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Legajo</th>
-          <th>Nombre</th>
-          <th>Entrevistador</th>
-          <th>Fecha</th>
-          <th>Modalidad</th>
+          <th>Empleado</th>
+          <th>Código</th>
+          <th>Sede</th>
+          <th>Familia</th>
           <th>Estado</th>
-          <ng-container *ngIf="esPrivilegiado">
-            <th>Borrador</th>
-            <th>Definitivo</th>
-            <th>Enea.</th>
-            <th></th>
-          </ng-container>
+          <th>Borrador</th>
+          <th>Definitivo</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let e of filtradas">
-          <td class="mono">{{ e.id_entrevista || '—' }}</td>
-          <td class="mono">{{ e.legajo || '—' }}</td>
-          <td>{{ e.nombre || '—' }}</td>
-          <td>{{ e.entrevistador || '—' }}</td>
-          <td>{{ e.fecha || '—' }}</td>
-          <td>{{ e.modalidad || '—' }}</td>
-          <td>
-            <span class="badge"
-              [ngClass]="e.estado === 'Completada' ? 'b-ok' : e.estado === 'En proceso' ? 'b-proc' : 'b-pend'">
-              {{ e.estado || '—' }}
-            </span>
-          </td>
-          <ng-container *ngIf="esPrivilegiado">
-            <td>
-              <button *ngIf="e.link_sin_revision" class="btn-tbl-link"
-                (click)="abrirLink(e.link_sin_revision)">Borrador</button>
-              <span *ngIf="!e.link_sin_revision" class="tbl-empty">—</span>
+        <ng-container *ngFor="let e of empleados(); trackBy: trackByLegajo">
+
+          <!-- FILA PRINCIPAL -->
+          <tr [class.fila-activa]="filaAbierta === e.legajo"
+              [class.fila-publicada]="estaPublicado(e)">
+
+            <!-- Empleado -->
+            <td class="td-empleado">
+              <div class="emp-nombre">{{ e.apellido_nombre }}</div>
+              <div class="emp-meta">Leg. {{ e.legajo }}</div>
             </td>
+
+            <!-- Código -->
+            <td class="td-codigo">{{ e.codigo }}</td>
+
+            <!-- Sede -->
+            <td class="td-sede">{{ e.sedeName || e.sede }}</td>
+
+            <!-- Familia -->
             <td>
-              <button *ngIf="e.link_definitivo" class="btn-tbl-link btn-tbl-def"
-                (click)="abrirLink(e.link_definitivo)">Definitivo</button>
-              <span *ngIf="!e.link_definitivo" class="tbl-empty">—</span>
+              <span class="fam-badge" [attr.data-fam]="e.familia">{{ e.familia }}</span>
             </td>
-            <td class="mono">{{ e.eneagrama || '—' }}</td>
+
+            <!-- Estado dropdown -->
             <td>
-              <button class="btn-tbl-edit" (click)="abrirEdicion(e)">Editar</button>
+              <div class="estado-wrap">
+                <select
+                  class="select-estado"
+                  [ngClass]="estadoClass(e.estado)"
+                  [ngModel]="e.estado"
+                  (change)="cambiarEstado(e, $any($event.target).value)"
+                  [disabled]="!puedeEditar">
+                  <option value="PENDIENTE">Pendiente</option>
+                  <option value="ENTREVISTADO">Entrevistado</option>
+                  <option value="REVISIÓN">Revisión</option>
+                  <option value="COMPLETADO">Completado</option>
+                </select>
+                <!-- Ícono publicado -->
+                <span *ngIf="estaPublicado(e)" class="badge-publicado" title="Publicado en Descriptivos">
+                  ✓ Publicado
+                </span>
+              </div>
             </td>
-          </ng-container>
-        </tr>
-        <tr *ngIf="filtradas.length === 0">
-          <td [colSpan]="esPrivilegiado ? 11 : 7"
-            style="text-align:center;color:var(--gr);padding:24px">
-            No hay entrevistas registradas
-          </td>
-        </tr>
+
+            <!-- Borrador -->
+            <td class="td-link">
+              <ng-container *ngIf="e.linkBorrador; else sinBorrador">
+                <a [href]="e.linkBorrador" target="_blank" class="link-doc">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                  Ver
+                </a>
+                <button *ngIf="puedeEditar" class="btn-edit-link"
+                  (click)="abrirModalLink(e, 'borrador')" title="Editar link">✎</button>
+              </ng-container>
+              <ng-template #sinBorrador>
+                <button *ngIf="puedeEditar" class="btn-cargar"
+                  (click)="abrirModalLink(e, 'borrador')">+ Cargar</button>
+                <span *ngIf="!puedeEditar" class="sin-link">—</span>
+              </ng-template>
+            </td>
+
+            <!-- Definitivo — lógica de estados visuales -->
+            <td class="td-link">
+
+              <!-- PUBLICADO: COMPLETADO + tiene link -->
+              <ng-container *ngIf="estaPublicado(e)">
+                <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-publicado">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  Publicado
+                </a>
+                <button *ngIf="puedeEditar" class="btn-edit-link"
+                  (click)="abrirModalLink(e, 'definitivo')" title="Editar link">✎</button>
+              </ng-container>
+
+              <!-- TIENE LINK PERO NO COMPLETADO: pendiente de aprobación -->
+              <ng-container *ngIf="definitivoSinAprobar(e)">
+                <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-def">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                  Ver
+                </a>
+                <span class="badge-pendiente-aprobacion" title="Cargado — pendiente de aprobación">
+                  Pendiente aprobación
+                </span>
+                <button *ngIf="puedeEditar" class="btn-edit-link"
+                  (click)="abrirModalLink(e, 'definitivo')" title="Editar link">✎</button>
+              </ng-container>
+
+              <!-- EN REVISIÓN SIN LINK: necesita corrección -->
+              <ng-container *ngIf="definitivoPendiente(e)">
+                <span class="badge-correccion">
+                  ⚠ Requiere corrección
+                </span>
+                <button *ngIf="puedeEditar" class="btn-cargar btn-cargar--alerta"
+                  (click)="abrirModalLink(e, 'definitivo')">+ Cargar</button>
+              </ng-container>
+
+              <!-- SIN LINK Y SIN ESTADO ESPECIAL -->
+              <ng-container *ngIf="!e.linkDefinitivo && !definitivoPendiente(e) && !estaPublicado(e)">
+                <button *ngIf="puedeEditar" class="btn-cargar"
+                  (click)="abrirModalLink(e, 'definitivo')">+ Cargar</button>
+                <span *ngIf="!puedeEditar" class="sin-link">—</span>
+              </ng-container>
+
+            </td>
+
+            <!-- Expandir -->
+            <td>
+              <button
+                *ngIf="esPrivilegiado"
+                class="btn-detalle"
+                [class.abierto]="filaAbierta === e.legajo"
+                (click)="toggleDetalle(e.legajo)"
+                title="Campos privados">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+
+          <!-- FILA EXPANDIDA — campos privados -->
+          <tr *ngIf="filaAbierta === e.legajo && esPrivilegiado" class="fila-privada">
+            <td colspan="8">
+              <div class="privado-wrap">
+
+                <!-- ALERTA REVISIÓN con observación -->
+                <div *ngIf="tieneObservacion(e)" class="alerta-revision">
+                  <div class="alerta-revision-title">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    En revisión — observación de RRHH
+                  </div>
+                  <div class="alerta-revision-texto">{{ e.observacion }}</div>
+                </div>
+
+                <div class="privado-grid">
+                  <!-- Transcripción -->
+                  <div class="privado-campo privado-campo--lg">
+                    <label class="priv-label">🔒 Transcripción de entrevista</label>
+                    <textarea
+                      class="priv-textarea"
+                      placeholder="Transcripción de la entrevista..."
+                      [(ngModel)]="e.transcripcion"
+                      [disabled]="!puedeEditar"
+                      rows="5">
+                    </textarea>
+                  </div>
+
+                  <div class="privado-col-right">
+                    <!-- Eneagrama -->
+                    <div class="privado-campo">
+                      <label class="priv-label">🔒 Eneagrama</label>
+                      <input
+                        class="priv-input"
+                        type="text"
+                        placeholder="Ej: 6.1"
+                        [(ngModel)]="e.eneagrama"
+                        [disabled]="!puedeEditar"
+                      />
+                    </div>
+
+                    <!-- Observación interna -->
+                    <div class="privado-campo">
+                      <label class="priv-label">🔒 Observación interna</label>
+                      <textarea
+                        class="priv-textarea"
+                        placeholder="Observaciones del equipo..."
+                        [(ngModel)]="e.observacion"
+                        [disabled]="!puedeEditar"
+                        rows="4">
+                      </textarea>
+                    </div>
+
+                    <!-- Guardar -->
+                    <div class="privado-footer" *ngIf="puedeEditar">
+                      <button class="btn btn-p btn-sm" (click)="guardarPrivados(e)">
+                        Guardar cambios
+                      </button>
+                      <span *ngIf="guardadoMsg === e.legajo" class="guardado-ok">✓ Guardado</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </td>
+          </tr>
+
+        </ng-container>
       </tbody>
     </table>
+
+    <!-- FOOTER -->
+    <div class="tbl-footer">
+      <span>{{ empleados().length }} empleados encontrados</span>
+      <a class="link-sheets" href="#" target="_blank">⇗ Google Sheets</a>
+    </div>
   </div>
 
+  <!-- SIN RESULTADOS -->
+  <div *ngIf="hayFiltro && !cargando() && !errorMsg() && empleados().length === 0"
+       class="estado-vacio">
+    <div class="ev-ico">○</div>
+    <div class="ev-title">Sin resultados</div>
+    <div class="ev-sub">No se encontraron empleados con esos filtros</div>
+    <button class="btn btn-s" (click)="limpiarFiltros()">Limpiar filtros</button>
+  </div>
+
+</div>
+
+<!-- MODAL LINK -->
+<div class="modal-overlay" *ngIf="modalLink.abierto" (click)="cerrarModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">
+        {{ modalLink.tipo === 'borrador' ? 'Link borrador' : 'Link definitivo' }}
+      </div>
+      <div class="modal-sub">{{ modalLink.empleado?.apellido_nombre }}</div>
+      <!-- Aclaración para definitivo -->
+      <div *ngIf="modalLink.tipo === 'definitivo'" class="modal-aclaracion">
+        Una vez cargado el link, cambiá el estado a
+        <strong>Completado</strong> para publicar en Descriptivos.
+      </div>
+      <button class="modal-close" (click)="cerrarModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="modal-label">URL del Google Doc</label>
+      <input
+        class="modal-input"
+        type="url"
+        placeholder="https://docs.google.com/..."
+        [(ngModel)]="modalLink.url"
+        (keydown.enter)="confirmarLink()"
+      />
+      <div class="modal-hint">Pegá el link del documento de Google Drive</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-s" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn btn-p" (click)="confirmarLink()" [disabled]="!modalLink.url">
+        Guardar link
+      </button>
+    </div>
+  </div>
 </div>

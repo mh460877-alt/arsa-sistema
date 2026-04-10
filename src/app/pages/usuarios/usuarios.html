@@ -1,1 +1,161 @@
-<p>usuarios works!</p>
+<div class="usu-page">
+
+  <!-- HEADER -->
+  <div class="usu-header">
+    <div>
+      <div class="usu-breadcrumb">SISTEMA</div>
+      <h1 class="usu-title">GESTIÓN DE USUARIOS</h1>
+    </div>
+    <button class="btn-primary" (click)="abrirNuevo()">+ Nuevo Usuario</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="usu-kpis">
+    <div class="kpi-card">
+      <span class="kpi-val">{{ usuarios.length }}</span>
+      <span class="kpi-label">Total usuarios</span>
+    </div>
+    <div class="kpi-card kpi-verde">
+      <span class="kpi-val">{{ totalActivos }}</span>
+      <span class="kpi-label">Activos</span>
+    </div>
+    <div class="kpi-card kpi-rojo">
+      <span class="kpi-val">{{ totalInactivos }}</span>
+      <span class="kpi-label">Inactivos</span>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="usu-filtros">
+    <div class="search-wrap">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input type="text" placeholder="Buscar por nombre, usuario o legajo..."
+             [(ngModel)]="busqueda" (ngModelChange)="filtrar()" class="search-input"/>
+    </div>
+    <select [(ngModel)]="filtroRol" (ngModelChange)="filtrar()" class="filtro-select">
+      <option value="">Todos los roles</option>
+      <option *ngFor="let r of rolesDisponibles" [value]="r">{{ r | titlecase }}</option>
+    </select>
+    <select [(ngModel)]="filtroActivo" (ngModelChange)="filtrar()" class="filtro-select">
+      <option value="">Todos los estados</option>
+      <option value="SI">Activos</option>
+      <option value="NO">Inactivos</option>
+    </select>
+  </div>
+
+  <!-- ESTADO CARGA -->
+  <div *ngIf="cargando" class="usu-loading">
+    <div class="spinner"></div>
+    <span>Cargando usuarios...</span>
+  </div>
+  <div *ngIf="error && !cargando" class="usu-error">{{ error }}</div>
+
+  <!-- TABLA -->
+  <div *ngIf="!cargando && !error" class="usu-table-wrap">
+    <table class="usu-table">
+      <thead>
+        <tr>
+          <th>Legajo</th>
+          <th>Nombre</th>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let u of filtrados">
+          <td class="td-legajo">{{ u.legajo }}</td>
+          <td class="td-nombre">{{ u.nombre }}</td>
+          <td><code class="td-code">{{ u.usuario }}</code></td>
+          <td class="td-email">{{ u.email || '—' }}</td>
+          <td>
+            <span class="badge-rol" [class]="'rol-' + u.rol">{{ u.rol | titlecase }}</span>
+          </td>
+          <td>
+            <button class="toggle-btn" [class.toggle-on]="u.activo === 'SI'" (click)="toggleActivo(u)">
+              <span class="toggle-dot"></span>
+              <span>{{ u.activo === 'SI' ? 'Activo' : 'Inactivo' }}</span>
+            </button>
+          </td>
+          <td>
+            <button class="btn-edit" (click)="abrirEditar(u)">Editar</button>
+          </td>
+        </tr>
+        <tr *ngIf="filtrados.length === 0">
+          <td colspan="7" class="td-empty">No se encontraron usuarios.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+
+      <div class="modal-header">
+        <h2>{{ modoEdicion ? 'Editar Usuario' : 'Nuevo Usuario' }}</h2>
+        <button class="modal-close" (click)="cerrarModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Legajo *</label>
+            <input type="text" [(ngModel)]="form.legajo" [disabled]="modoEdicion" placeholder="Ej: 5633"/>
+          </div>
+          <div class="form-group">
+            <label>Rol *</label>
+            <select [(ngModel)]="form.rol">
+              <option *ngFor="let r of rolesDisponibles" [value]="r">{{ r | titlecase }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <input type="text" [(ngModel)]="form.nombre" placeholder="Apellido, Nombre"/>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Usuario *</label>
+            <input type="text" [(ngModel)]="form.usuario" placeholder="usuario.acceso"/>
+          </div>
+          <div class="form-group">
+            <label>Contraseña {{ modoEdicion ? '(dejar vacío para no cambiar)' : '*' }}</label>
+            <input type="password" [(ngModel)]="form.password" placeholder="••••••••"/>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" [(ngModel)]="form.email" placeholder="correo@aguas.com"/>
+        </div>
+
+        <div class="form-group">
+          <label>Estado</label>
+          <select [(ngModel)]="form.activo">
+            <option value="SI">Activo</option>
+            <option value="NO">Inactivo</option>
+          </select>
+        </div>
+
+        <div class="modal-error" *ngIf="errorModal">{{ errorModal }}</div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-ghost" (click)="cerrarModal()">Cancelar</button>
+        <button class="btn-primary" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Guardando...' : (modoEdicion ? 'Guardar cambios' : 'Crear usuario') }}
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>

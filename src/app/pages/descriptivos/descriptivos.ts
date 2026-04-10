@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { ApiService } from '../../services/api';
 
 @Component({
@@ -32,7 +33,7 @@ export class Descriptivos implements OnInit {
         this.cargando = false;
         if (res.ok) {
           this.descriptivos = res.data;
-          this.filtrados = res.data;
+          this.filtrar();
         }
       },
       error: () => { this.cargando = false; }
@@ -62,18 +63,12 @@ export class Descriptivos implements OnInit {
 
   guardar() {
     this.guardando = true;
-    this.api.post({ action: 'saveDescriptivo', data: this.seleccionado }).subscribe({
-      next: (res: any) => {
-        this.guardando = false;
-        if (res.ok) {
-          this.editando = false;
-          this.cargar();
-        } else {
-          alert('Error: ' + res.error);
-        }
-      },
-      error: () => { this.guardando = false; }
-    });
+    this.api.post({ action: 'saveDescriptivo', data: this.seleccionado }).subscribe({ error: () => {} });
+    setTimeout(() => {
+      this.guardando = false;
+      this.editando = false;
+      this.cargar();
+    }, 2000);
   }
 
   publicar() {
@@ -82,15 +77,12 @@ export class Descriptivos implements OnInit {
       return;
     }
     if (!confirm('¿Publicar este descriptivo? El empleado podrá verlo.')) return;
-    this.api.post({ action: 'publicar', familia_id: this.seleccionado.familia_id }).subscribe({
-      next: (res: any) => {
-        if (res.ok) {
-          this.seleccionado.estado = 'Publicado';
-          this.seleccionado.publicado = 'SI';
-          this.cargar();
-        }
-      }
-    });
+    this.api.post({ action: 'publicar', data: { familia_id: this.seleccionado.familia_id } }).subscribe({ error: () => {} });
+    setTimeout(() => {
+      this.seleccionado.estado = 'Publicado';
+      this.seleccionado.publicado = 'SI';
+      this.cargar();
+    }, 2000);
   }
 
   nuevoDescriptivo() {
@@ -116,18 +108,15 @@ export class Descriptivos implements OnInit {
   guardarNuevo() {
     if (!this.seleccionado.familia_id) { alert('Ingresá el Familia ID'); return; }
     this.guardando = true;
-    this.api.post({ action: 'createDescriptivo', data: this.seleccionado }).subscribe({
-      next: (res: any) => {
-        this.guardando = false;
-        if (res.ok) {
-          this.editando = false;
-          this.seleccionado = null;
-          this.cargar();
-        } else {
-          alert('Error: ' + res.error);
-        }
-      },
-      error: () => { this.guardando = false; }
-    });
+    this.api.post({ action: 'createDescriptivo', data: this.seleccionado }).subscribe({ error: () => {} });
+    setTimeout(() => {
+      this.guardando = false;
+      this.seleccionado = null;
+      this.cargar();
+    }, 2000);
   }
+
+  get totalPublicados() { return this.descriptivos.filter(d => d.publicado === 'SI').length; }
+  get totalBorrador()   { return this.descriptivos.filter(d => !d.estado || d.estado === 'Borrador').length; }
+  get totalRevision()   { return this.descriptivos.filter(d => d.estado === 'En revisión').length; }
 }

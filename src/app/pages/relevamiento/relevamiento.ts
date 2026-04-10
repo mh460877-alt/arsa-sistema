@@ -1,8 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyqJeyc1IowWB90pWXYqT8vHSpeAjiKgtD-FybWtQumCvf0a1gNqWM8F12e6GaCGJX8/exec';
+import { ApiService } from '../../services/api';
 
 const FAMILIAS = [
   { code: 'OPA',  name: 'Operaciones Agua' },
@@ -101,8 +100,9 @@ export class Relevamiento implements OnInit {
   } = { abierto: false, tipo: 'borrador', empleado: null, url: '' };
 
   // ── Internos ──────────────────────────────────────────────────────
-  private ultimaQuery     = '';
-  private ultimoResultado: any[] = [];
+  private todosLosEmpleados: any[] = [];
+
+  constructor(private api: ApiService) {}
 
   // ─────────────────────────────────────────────────────────────────
   ngOnInit() {
@@ -111,7 +111,6 @@ export class Relevamiento implements OnInit {
       try { this.rolUsuario = JSON.parse(raw).rol || ''; } catch {}
     }
     this.cargarStats();
-    if (this.ultimoResultado.length > 0) this.empleados.set(this.ultimoResultado);
   }
 
   get hayFiltro(): boolean {
@@ -119,44 +118,44 @@ export class Relevamiento implements OnInit {
   }
 
   // ── Helpers de estado ─────────────────────────────────────────────
-
-  // Un perfil está publicado cuando: COMPLETADO + tiene link definitivo
   estaPublicado(emp: any): boolean {
     return emp.estado?.toUpperCase() === 'COMPLETADO' && !!emp.linkDefinitivo;
   }
 
-  // Definitivo pendiente de carga: está en REVISIÓN pero sin link definitivo aún
   definitivoPendiente(emp: any): boolean {
     return emp.estado?.toUpperCase() === 'REVISIÓN' && !emp.linkDefinitivo;
   }
 
-  // Definitivo cargado pero NO completado: hay link pero falta aprobar
   definitivoSinAprobar(emp: any): boolean {
     return !!emp.linkDefinitivo && emp.estado?.toUpperCase() !== 'COMPLETADO';
   }
 
-  // Tiene observación de RRHH visible (cuando está en REVISIÓN)
   tieneObservacion(emp: any): boolean {
     return emp.estado?.toUpperCase() === 'REVISIÓN' && !!emp.observacion;
   }
 
-  // ── Stats ─────────────────────────────────────────────────────────
-  async cargarStats(): Promise<void> {
-    try {
-      const res  = await fetch(`${APPS_SCRIPT_URL}?accion=stats`);
-      const data = await res.json();
-      if (data.ok) {
-        const d = data.data;
-        this.stats = {
-          total:        d.total,
-          pendiente:    d.porEstado['PENDIENTE']    || 0,
-          entrevistado: d.porEstado['ENTREVISTADO'] || 0,
-          revision:     d.porEstado['REVISIÓN']     || 0,
-          completado:   d.porEstado['COMPLETADO']   || 0,
-          avance:       d.avancePct                 || 0,
-        };
-      }
-    } catch { /* silencioso */ }
+  // ── Stats desde ApiService ────────────────────────────────────────
+  cargarStats(): void {
+    this.api.stats().subscribe({
+      next: (res) => {
+        if (res.ok) {
+          const d = res.data;
+          // Calcular pendientes desde la nómina total menos completadas
+          const completado   = d.completadas || 0;
+          const total        = d.total_empleados || 859;
+          const entrevistado = d.total_entrevistas || 0;
+          this.stats = {
+            total,
+            pendiente:    Math.max(0, total - entrevistado),
+            entrevistado: Math.max(0, entrevistado - completado),
+            revision:     0,
+            completado,
+            avance:       total > 0 ? Math.round((completado / total) * 100) : 0,
+          };
+        }
+      },
+      error: () => { /* silencioso */ }
+    });
   }
 
   // ── Filtros ───────────────────────────────────────────────────────
@@ -164,46 +163,93 @@ export class Relevamiento implements OnInit {
     if (!this.busqueda) this.buscar();
   }
 
-  // ── Búsqueda ──────────────────────────────────────────────────────
-  async buscar(): Promise<void> {
+  // ── Búsqueda — lee Nomina y filtra localmente ─────────────────────
+  buscar(): void {
     if (!this.hayFiltro) { this.empleados.set([]); return; }
 
-    const params = new URLSearchParams({ accion: 'nomina', rol: this.rolUsuario || 'admin' });
-    if (this.busqueda)      params.set('q',       this.busqueda.trim());
-    if (this.filtroSede)    params.set('sede',     this.filtroSede);
-    if (this.filtroFamilia) params.set('familia',  this.filtroFamilia);
-    if (this.filtroEstado)  params.set('estado',   this.filtroEstado);
-
-    const queryActual = params.toString();
-    if (queryActual === this.ultimaQuery && this.hayResultados()) return;
-
-    this.ultimaQuery = queryActual;
     this.cargando.set(true);
     this.errorMsg.set('');
 
-    try {
-      const res  = await fetch(`${APPS_SCRIPT_URL}?${params.toString()}`);
-      const data = await res.json();
-      if (data.ok) {
-        this.empleados.set(data.data || []);
-        this.ultimoResultado = data.data || [];
-      } else {
-        this.errorMsg.set(data.error || 'Error al consultar');
-        this.empleados.set([]);
-      }
-    } catch {
-      this.errorMsg.set('No se pudo conectar con Google Sheets');
-      this.empleados.set([]);
-    } finally {
+    // Si ya tenemos datos cargados, solo filtrar
+    if (this.todosLosEmpleados.length > 0) {
+      this.aplicarFiltros();
       this.cargando.set(false);
+      return;
     }
+
+    // Primera carga: leer la hoja Nomina
+    this.api.leerTabla('Nomina').subscribe({
+      next: (res) => {
+        if (res.ok) {
+          this.todosLosEmpleados = (res.data as any[]).map(r => ({
+            legajo:          r.legajo          || '—',
+            apellido_nombre: r.apellido_nombre || '—',
+            codigo:          r.codigo_arsa     || '—',
+            sede:            r.sede            || '—',
+            sedeName:        r.sede            || '—',
+            familia:         (r.codigo_arsa || '').split('-')[0] || '—',
+            familiaNombre:   r.puesto          || '—',
+            estado:          (r.estado_relev   || 'PENDIENTE').toUpperCase(),
+            linkBorrador:    r.link_sin_revision  || '',
+            linkDefinitivo:  r.link_definitivo    || '',
+            transcripcion:   r.transcripcion      || '',
+            eneagrama:       r.eneagrama           || '',
+            observacion:     r.observacion_privada || '',
+          }));
+          this.aplicarFiltros();
+        } else {
+          this.errorMsg.set(res.error || 'Error al consultar');
+          this.empleados.set([]);
+        }
+        this.cargando.set(false);
+      },
+      error: () => {
+        this.errorMsg.set('No se pudo conectar con Google Sheets');
+        this.empleados.set([]);
+        this.cargando.set(false);
+      }
+    });
   }
 
-  // ── Cambiar estado con lógica de publicación ──────────────────────
-  async cambiarEstado(emp: any, nuevoEstado: string): Promise<void> {
+  private aplicarFiltros(): void {
+    let lista = [...this.todosLosEmpleados];
+
+    if (this.busqueda.trim()) {
+      const q = this.busqueda.toLowerCase().trim();
+      lista = lista.filter(e =>
+        e.apellido_nombre.toLowerCase().includes(q) ||
+        e.legajo.toLowerCase().includes(q) ||
+        e.codigo.toLowerCase().includes(q)
+      );
+    }
+
+    if (this.filtroSede) {
+      lista = lista.filter(e =>
+        e.sede.toLowerCase().includes(
+          SEDES.find(s => s.code === this.filtroSede)?.name.toLowerCase() || this.filtroSede.toLowerCase()
+        )
+      );
+    }
+
+    if (this.filtroFamilia) {
+      lista = lista.filter(e =>
+        e.codigo.toUpperCase().startsWith(this.filtroFamilia.toUpperCase())
+      );
+    }
+
+    if (this.filtroEstado) {
+      lista = lista.filter(e =>
+        e.estado.toUpperCase() === this.filtroEstado.toUpperCase()
+      );
+    }
+
+    this.empleados.set(lista);
+  }
+
+  // ── Cambiar estado ────────────────────────────────────────────────
+  cambiarEstado(emp: any, nuevoEstado: string): void {
     const anterior = emp.estado;
 
-    // Si pasa a COMPLETADO pero no tiene link definitivo → bloquear
     if (nuevoEstado === 'COMPLETADO' && !emp.linkDefinitivo) {
       this.errorMsg.set(`${emp.apellido_nombre} no tiene link definitivo cargado. Cargá el link antes de completar.`);
       setTimeout(() => this.errorMsg.set(''), 5000);
@@ -214,28 +260,30 @@ export class Relevamiento implements OnInit {
     this.empleados.update(l =>
       l.map(e => e.legajo === emp.legajo ? { ...e, estado: nuevoEstado } : e)
     );
+    this.todosLosEmpleados = this.todosLosEmpleados.map(e =>
+      e.legajo === emp.legajo ? { ...e, estado: nuevoEstado } : e
+    );
 
-    try {
-      const res  = await fetch(APPS_SCRIPT_URL, {
-        method:  'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body:    JSON.stringify({ accion: 'actualizarEstado', legajo: emp.legajo, estado: nuevoEstado })
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        // Revertir si falló
+    this.api.post({
+      action: 'updateEntrevista',
+      data: { id_entrevista: emp.legajo, estado: nuevoEstado }
+    }).subscribe({
+      next: (res) => {
+        if (!res.ok) {
+          this.empleados.update(l =>
+            l.map(e => e.legajo === emp.legajo ? { ...e, estado: anterior } : e)
+          );
+          this.errorMsg.set('Error al actualizar estado');
+        } else {
+          this.cargarStats();
+        }
+      },
+      error: () => {
         this.empleados.update(l =>
           l.map(e => e.legajo === emp.legajo ? { ...e, estado: anterior } : e)
         );
-        this.errorMsg.set('Error al actualizar estado');
-      } else {
-        this.cargarStats();
       }
-    } catch {
-      this.empleados.update(l =>
-        l.map(e => e.legajo === emp.legajo ? { ...e, estado: anterior } : e)
-      );
-    }
+    });
   }
 
   // ── Toggle fila privada ───────────────────────────────────────────
@@ -244,29 +292,26 @@ export class Relevamiento implements OnInit {
   }
 
   // ── Guardar privados ──────────────────────────────────────────────
-  async guardarPrivados(emp: any): Promise<void> {
-    try {
-      const res  = await fetch(APPS_SCRIPT_URL, {
-        method:  'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body:    JSON.stringify({
-          accion:        'guardarPrivados',
-          legajo:        emp.legajo,
-          transcripcion: emp.transcripcion || '',
-          eneagrama:     emp.eneagrama     || '',
-          observacion:   emp.observacion   || '',
-        })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        this.guardadoMsg = emp.legajo;
-        setTimeout(() => this.guardadoMsg = '', 3000);
-      } else {
-        this.errorMsg.set(data.error || 'Error al guardar');
+  guardarPrivados(emp: any): void {
+    this.api.post({
+      action: 'updateEntrevista',
+      data: {
+        id_entrevista:       emp.legajo,
+        transcripcion:       emp.transcripcion || '',
+        eneagrama:           emp.eneagrama     || '',
+        observacion_privada: emp.observacion   || '',
       }
-    } catch {
-      this.errorMsg.set('Error de conexión');
-    }
+    }).subscribe({
+      next: (res) => {
+        if (res.ok) {
+          this.guardadoMsg = emp.legajo;
+          setTimeout(() => this.guardadoMsg = '', 3000);
+        } else {
+          this.errorMsg.set(res.error || 'Error al guardar');
+        }
+      },
+      error: () => { this.errorMsg.set('Error de conexión'); }
+    });
   }
 
   // ── Modal link ────────────────────────────────────────────────────
@@ -281,46 +326,53 @@ export class Relevamiento implements OnInit {
     this.modalLink = { abierto: false, tipo: 'borrador', empleado: null, url: '' };
   }
 
-  async confirmarLink(): Promise<void> {
+  confirmarLink(): void {
     if (!this.modalLink.url || !this.modalLink.empleado) return;
     const { empleado: emp, tipo, url } = this.modalLink;
     const urlLimpia = url.trim();
 
-    try {
-      const res  = await fetch(APPS_SCRIPT_URL, {
-        method:  'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body:    JSON.stringify({
-          accion:         'actualizarLinks',
-          legajo:         emp.legajo,
-          linkBorrador:   tipo === 'borrador'   ? urlLimpia : undefined,
-          linkDefinitivo: tipo === 'definitivo' ? urlLimpia : undefined,
-        })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        // Reflejar en memoria
-        this.empleados.update(l => l.map(e => {
-          if (e.legajo !== emp.legajo) return e;
-          return tipo === 'borrador'
-            ? { ...e, linkBorrador:   urlLimpia }
-            : { ...e, linkDefinitivo: urlLimpia };
-        }));
-        this.cerrarModal();
-      } else {
-        this.errorMsg.set(data.error || 'Error al guardar link');
+    this.api.post({
+      action: 'updateEntrevista',
+      data: {
+        id_entrevista:     emp.legajo,
+        link_sin_revision: tipo === 'borrador'   ? urlLimpia : undefined,
+        link_definitivo:   tipo === 'definitivo' ? urlLimpia : undefined,
       }
-    } catch {
-      this.errorMsg.set('Error de conexión');
-    }
+    }).subscribe({
+      next: (res) => {
+        if (res.ok) {
+          this.empleados.update(l => l.map(e => {
+            if (e.legajo !== emp.legajo) return e;
+            return tipo === 'borrador'
+              ? { ...e, linkBorrador:   urlLimpia }
+              : { ...e, linkDefinitivo: urlLimpia };
+          }));
+          this.todosLosEmpleados = this.todosLosEmpleados.map(e => {
+            if (e.legajo !== emp.legajo) return e;
+            return tipo === 'borrador'
+              ? { ...e, linkBorrador:   urlLimpia }
+              : { ...e, linkDefinitivo: urlLimpia };
+          });
+          this.cerrarModal();
+        } else {
+          this.errorMsg.set(res.error || 'Error al guardar link');
+        }
+      },
+      error: () => { this.errorMsg.set('Error de conexión'); }
+    });
   }
 
   // ── Limpiar ───────────────────────────────────────────────────────
   limpiarFiltros() {
     this.busqueda = this.filtroSede = this.filtroFamilia = this.filtroEstado = '';
     this.empleados.set([]);
-    this.ultimaQuery = '';
     this.errorMsg.set('');
+  }
+
+  refrescar() {
+    this.todosLosEmpleados = [];
+    this.empleados.set([]);
+    this.buscar();
   }
 
   // ── Exportar CSV ──────────────────────────────────────────────────

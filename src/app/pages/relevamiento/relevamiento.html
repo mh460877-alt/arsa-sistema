@@ -65,15 +65,15 @@
         </svg>
       </button>
     </div>
-    <select class="tbl-filter" [(ngModel)]="filtroSede"    (change)="onFiltroChange()">
+    <select class="tbl-filter" [(ngModel)]="filtroSede" (change)="onFiltroChange()">
       <option value="">Todas las sedes</option>
-      <option *ngFor="let s of listaSedes"    [value]="s.code">{{ s.name }}</option>
+      <option *ngFor="let s of listaSedes" [value]="s.code">{{ s.name }}</option>
     </select>
     <select class="tbl-filter" [(ngModel)]="filtroFamilia" (change)="onFiltroChange()">
       <option value="">Todas las familias</option>
       <option *ngFor="let f of listaFamilias" [value]="f.code">{{ f.name }}</option>
     </select>
-    <select class="tbl-filter" [(ngModel)]="filtroEstado"  (change)="onFiltroChange()">
+    <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="onFiltroChange()">
       <option value="">Todos los estados</option>
       <option value="PENDIENTE">Pendiente</option>
       <option value="ENTREVISTADO">Entrevistado</option>
@@ -82,7 +82,7 @@
     </select>
   </div>
 
-  <!-- AVISO — completado requiere link definitivo -->
+  <!-- AVISO -->
   <div class="aviso-regla" *ngIf="puedeEditar">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
       stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -156,7 +156,7 @@
               <span class="fam-badge" [attr.data-fam]="e.familia">{{ e.familia }}</span>
             </td>
 
-            <!-- Estado dropdown -->
+            <!-- Estado -->
             <td>
               <div class="estado-wrap">
                 <select
@@ -170,14 +170,11 @@
                   <option value="REVISIÓN">Revisión</option>
                   <option value="COMPLETADO">Completado</option>
                 </select>
-                <!-- Ícono publicado -->
-                <span *ngIf="estaPublicado(e)" class="badge-publicado" title="Publicado en Descriptivos">
-                  ✓ Publicado
-                </span>
+                <span *ngIf="estaPublicado(e)" class="badge-publicado">✓ Publicado</span>
               </div>
             </td>
 
-            <!-- Borrador -->
+            <!-- Borrador — UN solo bloque con if/else -->
             <td class="td-link">
               <ng-container *ngIf="e.linkBorrador; else sinBorrador">
                 <a [href]="e.linkBorrador" target="_blank" class="link-doc">
@@ -198,10 +195,10 @@
               </ng-template>
             </td>
 
-            <!-- Definitivo — lógica de estados visuales -->
+            <!-- Definitivo — UN solo bloque, condiciones mutuamente excluyentes -->
             <td class="td-link">
 
-              <!-- PUBLICADO: COMPLETADO + tiene link -->
+              <!-- Caso 1: publicado (COMPLETADO + link) -->
               <ng-container *ngIf="estaPublicado(e)">
                 <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-publicado">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -214,8 +211,8 @@
                   (click)="abrirModalLink(e, 'definitivo')" title="Editar link">✎</button>
               </ng-container>
 
-              <!-- TIENE LINK PERO NO COMPLETADO: pendiente de aprobación -->
-              <ng-container *ngIf="definitivoSinAprobar(e)">
+              <!-- Caso 2: tiene link pero NO completado -->
+              <ng-container *ngIf="!estaPublicado(e) && definitivoSinAprobar(e)">
                 <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-def">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -224,24 +221,20 @@
                   </svg>
                   Ver
                 </a>
-                <span class="badge-pendiente-aprobacion" title="Cargado — pendiente de aprobación">
-                  Pendiente aprobación
-                </span>
+                <span class="badge-pendiente-aprobacion">Pendiente aprobación</span>
                 <button *ngIf="puedeEditar" class="btn-edit-link"
                   (click)="abrirModalLink(e, 'definitivo')" title="Editar link">✎</button>
               </ng-container>
 
-              <!-- EN REVISIÓN SIN LINK: necesita corrección -->
-              <ng-container *ngIf="definitivoPendiente(e)">
-                <span class="badge-correccion">
-                  ⚠ Requiere corrección
-                </span>
+              <!-- Caso 3: en REVISIÓN sin link -->
+              <ng-container *ngIf="!estaPublicado(e) && !e.linkDefinitivo && definitivoPendiente(e)">
+                <span class="badge-correccion">⚠ Requiere corrección</span>
                 <button *ngIf="puedeEditar" class="btn-cargar btn-cargar--alerta"
                   (click)="abrirModalLink(e, 'definitivo')">+ Cargar</button>
               </ng-container>
 
-              <!-- SIN LINK Y SIN ESTADO ESPECIAL -->
-              <ng-container *ngIf="!e.linkDefinitivo && !definitivoPendiente(e) && !estaPublicado(e)">
+              <!-- Caso 4: sin link y sin estado especial -->
+              <ng-container *ngIf="!estaPublicado(e) && !e.linkDefinitivo && !definitivoPendiente(e)">
                 <button *ngIf="puedeEditar" class="btn-cargar"
                   (click)="abrirModalLink(e, 'definitivo')">+ Cargar</button>
                 <span *ngIf="!puedeEditar" class="sin-link">—</span>
@@ -249,7 +242,7 @@
 
             </td>
 
-            <!-- Expandir -->
+            <!-- Expandir campos privados -->
             <td>
               <button
                 *ngIf="esPrivilegiado"
@@ -270,7 +263,6 @@
             <td colspan="8">
               <div class="privado-wrap">
 
-                <!-- ALERTA REVISIÓN con observación -->
                 <div *ngIf="tieneObservacion(e)" class="alerta-revision">
                   <div class="alerta-revision-title">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -284,7 +276,6 @@
                 </div>
 
                 <div class="privado-grid">
-                  <!-- Transcripción -->
                   <div class="privado-campo privado-campo--lg">
                     <label class="priv-label">🔒 Transcripción de entrevista</label>
                     <textarea
@@ -297,7 +288,6 @@
                   </div>
 
                   <div class="privado-col-right">
-                    <!-- Eneagrama -->
                     <div class="privado-campo">
                       <label class="priv-label">🔒 Eneagrama</label>
                       <input
@@ -309,7 +299,6 @@
                       />
                     </div>
 
-                    <!-- Observación interna -->
                     <div class="privado-campo">
                       <label class="priv-label">🔒 Observación interna</label>
                       <textarea
@@ -321,7 +310,6 @@
                       </textarea>
                     </div>
 
-                    <!-- Guardar -->
                     <div class="privado-footer" *ngIf="puedeEditar">
                       <button class="btn btn-p btn-sm" (click)="guardarPrivados(e)">
                         Guardar cambios
@@ -339,16 +327,13 @@
       </tbody>
     </table>
 
-    <!-- FOOTER -->
     <div class="tbl-footer">
       <span>{{ empleados().length }} empleados encontrados</span>
-      <a class="link-sheets" href="#" target="_blank">⇗ Google Sheets</a>
     </div>
   </div>
 
   <!-- SIN RESULTADOS -->
-  <div *ngIf="hayFiltro && !cargando() && !errorMsg() && empleados().length === 0"
-       class="estado-vacio">
+  <div *ngIf="hayFiltro && !cargando() && !errorMsg() && empleados().length === 0" class="estado-vacio">
     <div class="ev-ico">○</div>
     <div class="ev-title">Sin resultados</div>
     <div class="ev-sub">No se encontraron empleados con esos filtros</div>
@@ -365,7 +350,6 @@
         {{ modalLink.tipo === 'borrador' ? 'Link borrador' : 'Link definitivo' }}
       </div>
       <div class="modal-sub">{{ modalLink.empleado?.apellido_nombre }}</div>
-      <!-- Aclaración para definitivo -->
       <div *ngIf="modalLink.tipo === 'definitivo'" class="modal-aclaracion">
         Una vez cargado el link, cambiá el estado a
         <strong>Completado</strong> para publicar en Descriptivos.

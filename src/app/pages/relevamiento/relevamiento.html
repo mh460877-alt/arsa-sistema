@@ -7,6 +7,7 @@
       <div class="ph-title">Relevamiento</div>
     </div>
     <div class="ph-right">
+      <span class="rol-badge" [ngClass]="'rb-' + rolUsuario">{{ labelRol }}</span>
       <button class="btn btn-s" (click)="exportarCSV()" [disabled]="!hayResultados()">
         Exportar CSV
       </button>
@@ -49,19 +50,13 @@
   <!-- TOOLBAR -->
   <div class="tbl-toolbar">
     <div class="search-wrap">
-      <input
-        class="tbl-search"
-        type="text"
-        placeholder="Buscar por nombre o legajo..."
-        [(ngModel)]="busqueda"
-        (keydown.enter)="buscar()"
-      />
+      <input class="tbl-search" type="text" placeholder="Buscar por nombre o legajo..." [(ngModel)]="busqueda"
+        (keydown.enter)="buscar()" />
       <button class="btn-lupa" (click)="buscar()" title="Buscar">
-        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
-          fill="none" stroke="currentColor" stroke-width="2.2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="11" cy="11" r="8"/>
-          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
       </button>
     </div>
@@ -84,10 +79,11 @@
 
   <!-- AVISO -->
   <div class="aviso-regla" *ngIf="puedeEditar">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
     Para marcar como <strong>Completado</strong> el perfil debe tener el link definitivo cargado.
     Al completarse se publica automáticamente en <strong>Descriptivos de Puesto</strong>.
@@ -108,10 +104,11 @@
 
   <!-- ERROR -->
   <div *ngIf="errorMsg() && !cargando()" class="estado-error">
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
     <span>{{ errorMsg() }}</span>
     <button class="btn btn-s btn-sm" (click)="buscar()">Reintentar</button>
@@ -136,8 +133,7 @@
         <ng-container *ngFor="let e of empleados(); trackBy: trackByLegajo">
 
           <!-- FILA PRINCIPAL -->
-          <tr [class.fila-activa]="filaAbierta === e.legajo"
-              [class.fila-publicada]="estaPublicado(e)">
+          <tr [class.fila-activa]="filaAbierta === e.legajo" [class.fila-publicada]="estaPublicado(e)">
 
             <!-- Empleado -->
             <td class="td-empleado">
@@ -159,12 +155,8 @@
             <!-- Estado -->
             <td>
               <div class="estado-wrap">
-                <select
-                  class="select-estado"
-                  [ngClass]="estadoClass(e.estado)"
-                  [ngModel]="e.estado"
-                  (change)="cambiarEstado(e, $any($event.target).value)"
-                  [disabled]="!puedeEditar">
+                <select class="select-estado" [ngClass]="estadoClass(e.estado)" [ngModel]="e.estado"
+                  (change)="cambiarEstado(e, $any($event.target).value)" [disabled]="!puedeEditar">
                   <option value="PENDIENTE">Pendiente</option>
                   <option value="ENTREVISTADO">Entrevistado</option>
                   <option value="REVISIÓN">Revisión</option>
@@ -178,19 +170,20 @@
             <td class="td-link">
               <ng-container *ngIf="e.linkBorrador; else sinBorrador">
                 <a [href]="e.linkBorrador" target="_blank" class="link-doc">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
                   </svg>
                   Ver
                 </a>
-                <button *ngIf="puedeEditar" class="btn-edit-link"
-                  (click)="abrirModalLink(e, 'borrador')" title="Editar link">✎</button>
+                <!-- Solo Admin puede editar el link -->
+                <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'borrador')"
+                  title="Editar link">✎</button>
               </ng-container>
               <ng-template #sinBorrador>
-                <button *ngIf="puedeEditar" class="btn-cargar"
-                  (click)="abrirModalLink(e, 'borrador')">+ Cargar</button>
+                <button *ngIf="puedeEditar" class="btn-cargar" (click)="abrirModalLink(e, 'borrador')">+ Cargar</button>
+                <!-- RRHH sin link: solo guion -->
                 <span *ngIf="!puedeEditar" class="sin-link">—</span>
               </ng-template>
             </td>
@@ -201,29 +194,29 @@
               <!-- Caso 1: publicado (COMPLETADO + link) -->
               <ng-container *ngIf="estaPublicado(e)">
                 <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-publicado">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12"/>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
                   </svg>
                   Publicado
                 </a>
-                <button *ngIf="puedeEditar" class="btn-edit-link"
-                  (click)="abrirModalLink(e, 'definitivo')" title="Editar link">✎</button>
+                <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'definitivo')"
+                  title="Editar link">✎</button>
               </ng-container>
 
               <!-- Caso 2: tiene link pero NO completado -->
               <ng-container *ngIf="!estaPublicado(e) && definitivoSinAprobar(e)">
                 <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-def">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
                   </svg>
                   Ver
                 </a>
                 <span class="badge-pendiente-aprobacion">Pendiente aprobación</span>
-                <button *ngIf="puedeEditar" class="btn-edit-link"
-                  (click)="abrirModalLink(e, 'definitivo')" title="Editar link">✎</button>
+                <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'definitivo')"
+                  title="Editar link">✎</button>
               </ng-container>
 
               <!-- Caso 3: en REVISIÓN sin link -->
@@ -235,8 +228,8 @@
 
               <!-- Caso 4: sin link y sin estado especial -->
               <ng-container *ngIf="!estaPublicado(e) && !e.linkDefinitivo && !definitivoPendiente(e)">
-                <button *ngIf="puedeEditar" class="btn-cargar"
-                  (click)="abrirModalLink(e, 'definitivo')">+ Cargar</button>
+                <button *ngIf="puedeEditar" class="btn-cargar" (click)="abrirModalLink(e, 'definitivo')">+
+                  Cargar</button>
                 <span *ngIf="!puedeEditar" class="sin-link">—</span>
               </ng-container>
 
@@ -244,15 +237,11 @@
 
             <!-- Expandir campos privados -->
             <td>
-              <button
-                *ngIf="esPrivilegiado"
-                class="btn-detalle"
-                [class.abierto]="filaAbierta === e.legajo"
-                (click)="toggleDetalle(e.legajo)"
-                title="Campos privados">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9"/>
+              <button *ngIf="esPrivilegiado" class="btn-detalle" [class.abierto]="filaAbierta === e.legajo"
+                (click)="toggleDetalle(e.legajo)" title="Campos privados">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
             </td>
@@ -265,10 +254,12 @@
 
                 <div *ngIf="tieneObservacion(e)" class="alerta-revision">
                   <div class="alerta-revision-title">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path
+                        d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
                     </svg>
                     En revisión — observación de RRHH
                   </div>
@@ -278,35 +269,22 @@
                 <div class="privado-grid">
                   <div class="privado-campo privado-campo--lg">
                     <label class="priv-label">🔒 Transcripción de entrevista</label>
-                    <textarea
-                      class="priv-textarea"
-                      placeholder="Transcripción de la entrevista..."
-                      [(ngModel)]="e.transcripcion"
-                      [disabled]="!puedeEditar"
-                      rows="5">
+                    <textarea class="priv-textarea" placeholder="Transcripción de la entrevista..."
+                      [(ngModel)]="e.transcripcion" [disabled]="!puedeEditar" rows="5">
                     </textarea>
                   </div>
 
                   <div class="privado-col-right">
                     <div class="privado-campo">
                       <label class="priv-label">🔒 Eneagrama</label>
-                      <input
-                        class="priv-input"
-                        type="text"
-                        placeholder="Ej: 6.1"
-                        [(ngModel)]="e.eneagrama"
-                        [disabled]="!puedeEditar"
-                      />
+                      <input class="priv-input" type="text" placeholder="Ej: 6.1" [(ngModel)]="e.eneagrama"
+                        [disabled]="!puedeEditar" />
                     </div>
 
                     <div class="privado-campo">
                       <label class="priv-label">🔒 Observación interna</label>
-                      <textarea
-                        class="priv-textarea"
-                        placeholder="Observaciones del equipo..."
-                        [(ngModel)]="e.observacion"
-                        [disabled]="!puedeEditar"
-                        rows="4">
+                      <textarea class="priv-textarea" placeholder="Observaciones del equipo..."
+                        [(ngModel)]="e.observacion" [disabled]="!puedeEditar" rows="4">
                       </textarea>
                     </div>
 
@@ -358,13 +336,8 @@
     </div>
     <div class="modal-body">
       <label class="modal-label">URL del Google Doc</label>
-      <input
-        class="modal-input"
-        type="url"
-        placeholder="https://docs.google.com/..."
-        [(ngModel)]="modalLink.url"
-        (keydown.enter)="confirmarLink()"
-      />
+      <input class="modal-input" type="url" placeholder="https://docs.google.com/..." [(ngModel)]="modalLink.url"
+        (keydown.enter)="confirmarLink()" />
       <div class="modal-hint">Pegá el link del documento de Google Drive</div>
     </div>
     <div class="modal-footer">

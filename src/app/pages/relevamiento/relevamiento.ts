@@ -4,45 +4,45 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api';
 
 const FAMILIAS = [
-  { code: 'OPA',  name: 'Operaciones Agua' },
-  { code: 'ADM',  name: 'Administración' },
-  { code: 'AYC',  name: 'Operaciones A y C' },
-  { code: 'EM',   name: 'Electromecánica / Mant.' },
-  { code: 'OPC',  name: 'Operaciones Cloacas' },
-  { code: 'TEC',  name: 'Técnica / Planta' },
-  { code: 'JEF',  name: 'Jefatura de Servicio' },
-  { code: 'CAP',  name: 'Capataz' },
-  { code: 'COM',  name: 'Gestión Comercial' },
+  { code: 'OPA', name: 'Operaciones Agua' },
+  { code: 'ADM', name: 'Administración' },
+  { code: 'AYC', name: 'Operaciones A y C' },
+  { code: 'EM', name: 'Electromecánica / Mant.' },
+  { code: 'OPC', name: 'Operaciones Cloacas' },
+  { code: 'TEC', name: 'Técnica / Planta' },
+  { code: 'JEF', name: 'Jefatura de Servicio' },
+  { code: 'CAP', name: 'Capataz' },
+  { code: 'COM', name: 'Gestión Comercial' },
   { code: 'PROF', name: 'Profesional' },
-  { code: 'GER',  name: 'Gerencia / Subgerencia' },
-  { code: 'OTR',  name: 'Otros' },
-  { code: 'PAS',  name: 'Pasantía' },
+  { code: 'GER', name: 'Gerencia / Subgerencia' },
+  { code: 'OTR', name: 'Otros' },
+  { code: 'PAS', name: 'Pasantía' },
 ];
 
 const SEDES = [
-  { code: 'BRC', name: 'Bariloche' },       { code: 'GRC', name: 'Gral. Roca' },
-  { code: 'VDM', name: 'Viedma' },           { code: 'ALL', name: 'Allen' },
-  { code: 'CAT', name: 'Catriel' },          { code: 'CHO', name: 'Choele Choel' },
-  { code: '5ST', name: 'Cinco Saltos' },     { code: 'CPT', name: 'Cipolletti' },
-  { code: 'FRO', name: 'Fernández Oro' },    { code: 'HUE', name: 'Ing. Huergo' },
-  { code: 'RCO', name: 'Río Colorado' },     { code: 'SAO', name: 'S.A.O.' },
-  { code: 'CNS', name: 'Gral. Conesa' },     { code: 'LGR', name: 'Las Grutas' },
-  { code: 'SGR', name: 'Sierra Grande' },    { code: 'VAL', name: 'Valcheta' },
+  { code: 'BRC', name: 'Bariloche' }, { code: 'GRC', name: 'Gral. Roca' },
+  { code: 'VDM', name: 'Viedma' }, { code: 'ALL', name: 'Allen' },
+  { code: 'CAT', name: 'Catriel' }, { code: 'CHO', name: 'Choele Choel' },
+  { code: '5ST', name: 'Cinco Saltos' }, { code: 'CPT', name: 'Cipolletti' },
+  { code: 'FRO', name: 'Fernández Oro' }, { code: 'HUE', name: 'Ing. Huergo' },
+  { code: 'RCO', name: 'Río Colorado' }, { code: 'SAO', name: 'S.A.O.' },
+  { code: 'CNS', name: 'Gral. Conesa' }, { code: 'LGR', name: 'Las Grutas' },
+  { code: 'SGR', name: 'Sierra Grande' }, { code: 'VAL', name: 'Valcheta' },
   { code: 'GEG', name: 'Gral. Enrique Godoy' }, { code: 'CRV', name: 'Cervantes' },
-  { code: 'CHK', name: 'Chichinales' },      { code: 'CCO', name: 'Clte. Cordero' },
-  { code: 'CBE', name: 'Cnel. Belisle' },    { code: 'COM', name: 'Comallo' },
-  { code: 'CNI', name: 'Cona Niyeu' },       { code: 'DAR', name: 'Darwin' },
-  { code: 'ELB', name: 'El Bolsón' },        { code: 'ELC', name: 'El Cóndor' },
-  { code: 'GMI', name: 'Guardia Mitre' },    { code: 'LPE', name: 'Lago Pellegrini' },
-  { code: 'LBE', name: 'Los Berros' },       { code: 'LME', name: 'Los Menucos' },
-  { code: 'MQC', name: 'Maquinchao' },       { code: 'PLP', name: 'Paraje Las Perlas' },
-  { code: 'PIL', name: 'Pilcaniyeu' },        { code: 'POM', name: 'Pomona' },
-  { code: 'PSE', name: 'Puerto S.A.E.' },    { code: 'RME', name: 'Ramos Mexía' },
-  { code: 'RCH', name: 'Río Chico' },        { code: 'SJV', name: 'San Javier' },
-  { code: 'SCO', name: 'Sierra Colorada' },  { code: 'VRE', name: 'Villa Regina' },
-  { code: 'NOR', name: 'Ñorquinco' },        { code: 'VDC', name: 'Viedma Central' },
+  { code: 'CHK', name: 'Chichinales' }, { code: 'CCO', name: 'Clte. Cordero' },
+  { code: 'CBE', name: 'Cnel. Belisle' }, { code: 'COM', name: 'Comallo' },
+  { code: 'CNI', name: 'Cona Niyeu' }, { code: 'DAR', name: 'Darwin' },
+  { code: 'ELB', name: 'El Bolsón' }, { code: 'ELC', name: 'El Cóndor' },
+  { code: 'GMI', name: 'Guardia Mitre' }, { code: 'LPE', name: 'Lago Pellegrini' },
+  { code: 'LBE', name: 'Los Berros' }, { code: 'LME', name: 'Los Menucos' },
+  { code: 'MQC', name: 'Maquinchao' }, { code: 'PLP', name: 'Paraje Las Perlas' },
+  { code: 'PIL', name: 'Pilcaniyeu' }, { code: 'POM', name: 'Pomona' },
+  { code: 'PSE', name: 'Puerto S.A.E.' }, { code: 'RME', name: 'Ramos Mexía' },
+  { code: 'RCH', name: 'Río Chico' }, { code: 'SJV', name: 'San Javier' },
+  { code: 'SCO', name: 'Sierra Colorada' }, { code: 'VRE', name: 'Villa Regina' },
+  { code: 'NOR', name: 'Ñorquinco' }, { code: 'VDC', name: 'Viedma Central' },
   { code: 'SAV', name: 'Subg. Alto Valle' }, { code: 'SVE', name: 'Subg. Alto Valle Este' },
-  { code: 'SAN', name: 'Subg. Andina' },     { code: 'SAT', name: 'Subg. Atlántica' },
+  { code: 'SAN', name: 'Subg. Andina' }, { code: 'SAT', name: 'Subg. Atlántica' },
   { code: 'SES', name: 'Subg. Este' },
 ];
 
@@ -57,18 +57,18 @@ export class Relevamiento implements OnInit {
 
   // ── Signals ──────────────────────────────────────────────────────
   empleados = signal<any[]>([]);
-  cargando  = signal(false);
-  errorMsg  = signal('');
+  cargando = signal(false);
+  errorMsg = signal('');
 
   // ── Filtros ──────────────────────────────────────────────────────
-  busqueda      = '';
-  filtroSede    = '';
+  busqueda = '';
+  filtroSede = '';
   filtroFamilia = '';
-  filtroEstado  = '';
+  filtroEstado = '';
 
   // ── Dropdowns ────────────────────────────────────────────────────
   listaFamilias = FAMILIAS;
-  listaSedes    = SEDES;
+  listaSedes = SEDES;
 
   // ── Computed ─────────────────────────────────────────────────────
   hayResultados = computed(() => this.empleados().length > 0);
@@ -76,12 +76,29 @@ export class Relevamiento implements OnInit {
   // ── Rol desde localStorage ────────────────────────────────────────
   rolUsuario = '';
 
+  // Admin y RRHH ven campos privados (transcripción, eneagrama, observación)
   get esPrivilegiado(): boolean {
     return this.rolUsuario === 'admin' || this.rolUsuario === 'rrhh';
   }
 
+  // Solo Admin puede cambiar estados, cargar links y editar privados
   get puedeEditar(): boolean {
     return this.rolUsuario === 'admin';
+  }
+
+  // RRHH puede ver links pero no editarlos
+  get puedeVerLinks(): boolean {
+    return this.rolUsuario === 'admin' || this.rolUsuario === 'rrhh';
+  }
+
+  // Badge de rol para mostrar en el header
+  get labelRol(): string {
+    const labels: Record<string, string> = {
+      admin: 'Administrador',
+      rrhh: 'RRHH',
+      gerente: 'Gerente',
+    };
+    return labels[this.rolUsuario] || this.rolUsuario;
   }
 
   // ── UI ────────────────────────────────────────────────────────────
@@ -93,22 +110,22 @@ export class Relevamiento implements OnInit {
 
   // ── Modal link ────────────────────────────────────────────────────
   modalLink: {
-    abierto:  boolean;
-    tipo:     'borrador' | 'definitivo';
+    abierto: boolean;
+    tipo: 'borrador' | 'definitivo';
     empleado: any;
-    url:      string;
+    url: string;
   } = { abierto: false, tipo: 'borrador', empleado: null, url: '' };
 
   // ── Internos ──────────────────────────────────────────────────────
   private todosLosEmpleados: any[] = [];
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService) { }
 
   // ─────────────────────────────────────────────────────────────────
   ngOnInit() {
     const raw = localStorage.getItem('usuario');
     if (raw) {
-      try { this.rolUsuario = JSON.parse(raw).rol || ''; } catch {}
+      try { this.rolUsuario = JSON.parse(raw).rol || ''; } catch { }
     }
     this.cargarStats();
   }
@@ -141,16 +158,16 @@ export class Relevamiento implements OnInit {
         if (res.ok) {
           const d = res.data;
           // Calcular pendientes desde la nómina total menos completadas
-          const completado   = d.completadas || 0;
-          const total        = d.total_empleados || 859;
+          const completado = d.completadas || 0;
+          const total = d.total_empleados || 859;
           const entrevistado = d.total_entrevistas || 0;
           this.stats = {
             total,
-            pendiente:    Math.max(0, total - entrevistado),
+            pendiente: Math.max(0, total - entrevistado),
             entrevistado: Math.max(0, entrevistado - completado),
-            revision:     0,
+            revision: 0,
             completado,
-            avance:       total > 0 ? Math.round((completado / total) * 100) : 0,
+            avance: total > 0 ? Math.round((completado / total) * 100) : 0,
           };
         }
       },
@@ -182,19 +199,19 @@ export class Relevamiento implements OnInit {
       next: (res) => {
         if (res.ok) {
           this.todosLosEmpleados = (res.data as any[]).map(r => ({
-            legajo:          r.legajo          || '—',
+            legajo: r.legajo || '—',
             apellido_nombre: r.apellido_nombre || '—',
-            codigo:          r.codigo_arsa     || '—',
-            sede:            r.sede            || '—',
-            sedeName:        r.sede            || '—',
-            familia:         (r.codigo_arsa || '').split('-')[0] || '—',
-            familiaNombre:   r.puesto          || '—',
-            estado:          (r.estado_relev   || 'PENDIENTE').toUpperCase(),
-            linkBorrador:    r.link_sin_revision  || '',
-            linkDefinitivo:  r.link_definitivo    || '',
-            transcripcion:   r.transcripcion      || '',
-            eneagrama:       r.eneagrama           || '',
-            observacion:     r.observacion_privada || '',
+            codigo: r.codigo_arsa || '—',
+            sede: r.sede || '—',
+            sedeName: r.sede || '—',
+            familia: (r.codigo_arsa || '').split('-')[0] || '—',
+            familiaNombre: r.puesto || '—',
+            estado: (r.estado_relev || 'PENDIENTE').toUpperCase(),
+            linkBorrador: r.link_sin_revision || '',
+            linkDefinitivo: r.link_definitivo || '',
+            transcripcion: r.transcripcion || '',
+            eneagrama: r.eneagrama || '',
+            observacion: r.observacion_privada || '',
           }));
           this.aplicarFiltros();
         } else {
@@ -296,10 +313,10 @@ export class Relevamiento implements OnInit {
     this.api.post({
       action: 'updateEntrevista',
       data: {
-        id_entrevista:       emp.legajo,
-        transcripcion:       emp.transcripcion || '',
-        eneagrama:           emp.eneagrama     || '',
-        observacion_privada: emp.observacion   || '',
+        id_entrevista: emp.legajo,
+        transcripcion: emp.transcripcion || '',
+        eneagrama: emp.eneagrama || '',
+        observacion_privada: emp.observacion || '',
       }
     }).subscribe({
       next: (res) => {
@@ -334,9 +351,9 @@ export class Relevamiento implements OnInit {
     this.api.post({
       action: 'updateEntrevista',
       data: {
-        id_entrevista:     emp.legajo,
-        link_sin_revision: tipo === 'borrador'   ? urlLimpia : undefined,
-        link_definitivo:   tipo === 'definitivo' ? urlLimpia : undefined,
+        id_entrevista: emp.legajo,
+        link_sin_revision: tipo === 'borrador' ? urlLimpia : undefined,
+        link_definitivo: tipo === 'definitivo' ? urlLimpia : undefined,
       }
     }).subscribe({
       next: (res) => {
@@ -344,13 +361,13 @@ export class Relevamiento implements OnInit {
           this.empleados.update(l => l.map(e => {
             if (e.legajo !== emp.legajo) return e;
             return tipo === 'borrador'
-              ? { ...e, linkBorrador:   urlLimpia }
+              ? { ...e, linkBorrador: urlLimpia }
               : { ...e, linkDefinitivo: urlLimpia };
           }));
           this.todosLosEmpleados = this.todosLosEmpleados.map(e => {
             if (e.legajo !== emp.legajo) return e;
             return tipo === 'borrador'
-              ? { ...e, linkBorrador:   urlLimpia }
+              ? { ...e, linkBorrador: urlLimpia }
               : { ...e, linkDefinitivo: urlLimpia };
           });
           this.cerrarModal();
@@ -378,8 +395,8 @@ export class Relevamiento implements OnInit {
   // ── Exportar CSV ──────────────────────────────────────────────────
   exportarCSV() {
     if (!this.hayResultados()) return;
-    const headers = ['Legajo','Empleado','Código','Sede','Familia','Estado','Publicado','Borrador','Definitivo'];
-    const filas   = this.empleados().map(e => [
+    const headers = ['Legajo', 'Empleado', 'Código', 'Sede', 'Familia', 'Estado', 'Publicado', 'Borrador', 'Definitivo'];
+    const filas = this.empleados().map(e => [
       e.legajo, e.apellido_nombre, e.codigo,
       e.sedeName || e.sede, e.familiaNombre, e.estado,
       this.estaPublicado(e) ? 'Sí' : 'No',
@@ -388,8 +405,8 @@ export class Relevamiento implements OnInit {
     const csv = [headers, ...filas]
       .map(r => r.map(c => `"${String(c || '').replace(/"/g, '""')}"`).join(','))
       .join('\n');
-    const a    = document.createElement('a');
-    a.href     = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' }));
     a.download = `arsa-relevamiento-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
   }
@@ -399,10 +416,10 @@ export class Relevamiento implements OnInit {
 
   estadoClass(estado: string): string {
     const m: Record<string, string> = {
-      'COMPLETADO':   'est-ok',
-      'REVISIÓN':     'est-rev',
+      'COMPLETADO': 'est-ok',
+      'REVISIÓN': 'est-rev',
       'ENTREVISTADO': 'est-proc',
-      'PENDIENTE':    'est-pend',
+      'PENDIENTE': 'est-pend',
     };
     return m[estado?.toUpperCase()] || 'est-pend';
   }

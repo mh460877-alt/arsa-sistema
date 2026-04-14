@@ -85,6 +85,16 @@ export class Nomina implements OnInit, OnDestroy {
   private busquedaSubject = new Subject<void>();
   private destroy$        = new Subject<void>();
 
+  // ── Modal Agregar ─────────────────────────────────────────────────
+  modalAbierto = false;
+  guardando    = false;
+  errorModal   = '';
+  form: any = {
+  legajo: '', codigo_arsa: '', apellido_nombre: '',
+  sede: '', puesto: '', categoria: '',
+  nivel_cct: '', estado_relev: 'PENDIENTE'
+};
+
   constructor(private api: ApiService) {}
 
   ngOnInit() {
@@ -256,5 +266,38 @@ export class Nomina implements OnInit, OnDestroy {
     if (c === 'CAT3') return 'CAT 3';
     if (c === 'CAT4') return 'CAT 4';
     return cat || '—';
+  }
+  
+  formVacio() {
+    return {
+      legajo: '', codigo_arsa: '', apellido_nombre: '',
+      sede: '', puesto: '', categoria: '',
+      nivel_cct: '', estado_relev: 'PENDIENTE'
+    };
+  }
+
+  abrirModal() {
+    this.form = this.formVacio();
+    this.errorModal = '';
+    this.modalAbierto = true;
+  }
+
+  cerrarModal() {
+    this.modalAbierto = false;
+  }
+
+  guardar() {
+    if (!this.form.legajo || !this.form.apellido_nombre) {
+      this.errorModal = 'Legajo y nombre son obligatorios.';
+      return;
+    }
+    this.guardando = true;
+    this.errorModal = '';
+    this.api.post({ action: 'createEmpleado', data: this.form }).subscribe({ error: () => {} });
+    setTimeout(() => {
+      this.guardando = false;
+      this.cerrarModal();
+      this.refrescar();
+    }, 2000);
   }
 }

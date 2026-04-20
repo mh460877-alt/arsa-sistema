@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, from } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
 
   private url = 'https://script.google.com/macros/s/AKfycbzte9JEZnK8pe6E_fOUNrwCxfZpCy6RLb0jNcrMpKVUE0_kAeczgmM0VCxpZq2WWRn4pg/exec';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   login(usuario: string, password: string): Observable<any> {
     const params = new HttpParams()
@@ -41,9 +41,14 @@ export class ApiService {
     return this.http.get(this.url, { params });
   }
 
+  // POST real para escrituras — evita el 302 que genera doGet en Apps Script
   post(body: any): Observable<any> {
-    const dataStr = encodeURIComponent(JSON.stringify(body.data || {}));
-    const fullUrl = `${this.url}?action=${body.action}&data=${dataStr}`;
-    return this.http.get(fullUrl);
+    const promise = fetch(this.url, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(body)
+    }).then(r => r.json());
+    return from(promise);
   }
 }

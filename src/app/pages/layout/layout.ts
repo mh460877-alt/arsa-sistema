@@ -49,6 +49,46 @@ export class LayoutComponent implements OnInit {
     }
   ];
 
+  menuRrhh = [
+    {
+      nombre: 'General',
+      items: [
+        { label: 'Dashboard', ruta: '/dashboard', bloqueado: false, icon: 'dashboard' }
+      ]
+    },
+    {
+      nombre: 'Gestión',
+      items: [
+        { label: 'Nómina',       ruta: '/nomina',       bloqueado: false, icon: 'nomina' },
+        { label: 'Relevamiento', ruta: '/relevamiento', bloqueado: false, icon: 'relevamiento' },
+        { label: 'Descriptivos', ruta: '/descriptivos', bloqueado: false, icon: 'descriptivos' },
+      ]
+    },
+    {
+      nombre: 'Estructura',
+      items: [
+        { label: 'Organigrama', ruta: '/organigrama', bloqueado: false, icon: 'organigrama' }
+      ]
+    }
+  ];
+
+  menuGerente = [
+    {
+      nombre: 'General',
+      items: [
+        { label: 'Dashboard', ruta: '/dashboard', bloqueado: false, icon: 'dashboard' }
+      ]
+    },
+    {
+      nombre: 'Gestión',
+      items: [
+        { label: 'Nómina',       ruta: '/nomina',       bloqueado: false, icon: 'nomina' },
+        { label: 'Relevamiento', ruta: '/relevamiento', bloqueado: false, icon: 'relevamiento' },
+        { label: 'Descriptivos', ruta: '/descriptivos', bloqueado: false, icon: 'descriptivos' },
+      ]
+    }
+  ];
+
   menuEmpleado = [
     {
       nombre: 'Mi Puesto',
@@ -67,9 +107,19 @@ export class LayoutComponent implements OnInit {
     if (!raw) { this.router.navigate(['/login']); return; }
     this.usuario = JSON.parse(raw);
 
-    this.seccionesMenu = this.usuario.rol === 'empleado'
-      ? this.menuEmpleado
-      : this.menuAdmin;
+    // Redirigir empleado directo a su vista
+    if (this.usuario.rol === 'empleado') {
+      this.router.navigate(['/mi-descriptivo']);
+      return;
+    }
+
+    // Construir menú según rol
+    switch (this.usuario.rol) {
+      case 'admin':   this.seccionesMenu = this.menuAdmin;   break;
+      case 'rrhh':    this.seccionesMenu = this.menuRrhh;    break;
+      case 'gerente': this.seccionesMenu = this.menuGerente; break;
+      default:        this.seccionesMenu = this.menuAdmin;   break;
+    }
 
     this.router.events.pipe(
       filter(e => e instanceof NavigationEnd)
@@ -77,10 +127,6 @@ export class LayoutComponent implements OnInit {
       this.rutaActual = e.urlAfterRedirects;
     });
     this.rutaActual = this.router.url;
-
-    if (this.usuario.rol === 'empleado') {
-      this.router.navigate(['/mi-descriptivo']);
-    }
   }
 
   navegar(item: any) {

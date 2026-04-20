@@ -1,1 +1,274 @@
-<p>procedimientos works!</p>
+<div class="proc-page">
+
+  <!-- HEADER -->
+  <div class="proc-header">
+    <div>
+      <div class="proc-breadcrumb">Gestión</div>
+      <h1 class="proc-title">PROCEDIMIENTOS OPERATIVOS</h1>
+    </div>
+    <button class="btn-primary" *ngIf="!seleccionado" (click)="nuevoProcedimiento()">
+      + Nuevo procedimiento
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="proc-kpis" *ngIf="!seleccionado">
+    <div class="kpi-card">
+      <span class="kpi-val">{{ procedimientos.length }}</span>
+      <span class="kpi-label">Total</span>
+    </div>
+    <div class="kpi-card kpi-verde">
+      <span class="kpi-val">{{ totalVigentes }}</span>
+      <span class="kpi-label">Vigentes</span>
+    </div>
+    <div class="kpi-card kpi-amarillo">
+      <span class="kpi-val">{{ totalRevision }}</span>
+      <span class="kpi-label">En revisión</span>
+    </div>
+    <div class="kpi-card kpi-gris">
+      <span class="kpi-val">{{ totalBorrador }}</span>
+      <span class="kpi-label">Borrador</span>
+    </div>
+    <div class="kpi-card kpi-azul">
+      <span class="kpi-val">{{ totalObsoleto }}</span>
+      <span class="kpi-label">Obsoleto</span>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="cargando" class="proc-loading">
+    <div class="spinner"></div>
+    <span>Cargando procedimientos...</span>
+  </div>
+
+  <!-- TABLA -->
+  <div *ngIf="!cargando && !seleccionado" class="proc-table-wrap">
+    <div class="proc-toolbar">
+      <div class="search-wrap">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por código o nombre..."
+          class="search-input"
+          [(ngModel)]="busqueda"
+          (ngModelChange)="filtrar()"
+        />
+      </div>
+      <select class="filtro-select" [(ngModel)]="filtroEstado" (ngModelChange)="filtrar()">
+        <option value="">Todos los estados</option>
+        <option>Vigente</option>
+        <option>En revisión</option>
+        <option>Borrador</option>
+        <option>Obsoleto</option>
+      </select>
+      <select class="filtro-select" [(ngModel)]="filtroTipo" (ngModelChange)="filtrar()">
+        <option value="">Todos los tipos</option>
+        <option value="OP">Operativo</option>
+        <option value="ADM">Administrativo</option>
+        <option value="SEG">Seguridad</option>
+        <option value="CAL">Calidad</option>
+        <option value="GEN">General</option>
+      </select>
+      <span class="tbl-count">{{ filtrados.length }} procedimientos</span>
+    </div>
+
+    <table class="proc-table">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Nombre</th>
+          <th>Tipo</th>
+          <th>Versión</th>
+          <th>Estado</th>
+          <th>Descriptivos</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of filtrados">
+          <td class="td-codigo">{{ p.codigo || '—' }}</td>
+          <td class="td-nombre">{{ p.nombre || '—' }}</td>
+          <td>
+            <span class="badge-tipo" [ngClass]="tipoClass(p.tipo)">
+              {{ p.tipo || 'GEN' }}
+            </span>
+          </td>
+          <td class="td-version">v{{ p.version || '1.0' }}</td>
+          <td>
+            <span class="badge-estado" [ngClass]="estadoClass(p.estado)">
+              {{ p.estado || 'Borrador' }}
+            </span>
+          </td>
+          <td class="tbl-count">{{ contarVinculados(p.codigo) }}</td>
+          <td>
+            <button class="btn-edit" (click)="ver(p)">Ver / Editar</button>
+          </td>
+        </tr>
+        <tr *ngIf="filtrados.length === 0">
+          <td colspan="7" class="td-empty">No hay procedimientos cargados aún.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DETALLE -->
+  <div *ngIf="seleccionado" class="proc-detalle">
+
+    <div class="det-header">
+      <div>
+        <div class="proc-breadcrumb">Procedimiento Operativo</div>
+        <h2 class="det-title">
+          <span class="det-codigo-badge">{{ seleccionado.codigo || 'NUEVO' }}</span>
+          {{ seleccionado.nombre || 'Nuevo procedimiento' }}
+        </h2>
+        <span class="badge-estado" [ngClass]="estadoClass(seleccionado.estado)">
+          {{ seleccionado.estado || 'Borrador' }}
+        </span>
+        <span *ngIf="seleccionado.version" class="det-codigo-badge" style="margin-left:.5rem">
+          v{{ seleccionado.version }}
+        </span>
+      </div>
+      <div class="det-actions">
+        <button class="btn-ghost" (click)="cerrar()">← Volver</button>
+        <button class="btn-outline" (click)="editando = !editando">
+          {{ editando ? 'Cancelar' : 'Editar' }}
+        </button>
+        <button *ngIf="editando && !seleccionado._esNuevo"
+          class="btn-primary" [disabled]="guardando" (click)="guardar()">
+          {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+        <button *ngIf="editando && seleccionado._esNuevo"
+          class="btn-primary" [disabled]="guardando" (click)="guardarNuevo()">
+          {{ guardando ? 'Guardando...' : 'Crear procedimiento' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- DOCUMENTO -->
+    <div class="doc-box">
+      <div class="doc-label">Documento de referencia (Google Drive)</div>
+      <div class="doc-row">
+        <input
+          class="doc-input"
+          type="text"
+          [(ngModel)]="seleccionado.link_doc"
+          placeholder="Pegá el link del documento en Drive..."
+          [readonly]="!editando"
+        />
+        <a *ngIf="seleccionado.link_doc" [href]="seleccionado.link_doc" target="_blank"
+          class="btn-outline">Abrir ↗</a>
+      </div>
+    </div>
+
+    <!-- CAMPOS -->
+    <div class="det-grid">
+      <div class="det-field">
+        <label>Código *</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.codigo" placeholder="Ej: OP-001"/>
+        <div *ngIf="!editando" class="det-val det-val-mono">{{ seleccionado.codigo || '—' }}</div>
+      </div>
+      <div class="det-field span2">
+        <label>Nombre del procedimiento *</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.nombre"/>
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.nombre || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Tipo</label>
+        <select *ngIf="editando" [(ngModel)]="seleccionado.tipo">
+          <option value="OP">Operativo</option>
+          <option value="ADM">Administrativo</option>
+          <option value="SEG">Seguridad</option>
+          <option value="CAL">Calidad</option>
+          <option value="GEN">General</option>
+        </select>
+        <div *ngIf="!editando" class="det-val">
+          <span class="badge-tipo" [ngClass]="tipoClass(seleccionado.tipo)">
+            {{ tipoLabel(seleccionado.tipo) }}
+          </span>
+        </div>
+      </div>
+      <div class="det-field">
+        <label>Versión</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.version" placeholder="Ej: 1.0"/>
+        <div *ngIf="!editando" class="det-val det-val-mono">v{{ seleccionado.version || '1.0' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Estado</label>
+        <select *ngIf="editando" [(ngModel)]="seleccionado.estado">
+          <option>Borrador</option>
+          <option>En revisión</option>
+          <option>Vigente</option>
+          <option>Obsoleto</option>
+        </select>
+        <div *ngIf="!editando" class="det-val">
+          <span class="badge-estado" [ngClass]="estadoClass(seleccionado.estado)">
+            {{ seleccionado.estado || 'Borrador' }}
+          </span>
+        </div>
+      </div>
+      <div class="det-field">
+        <label>Área responsable</label>
+        <input *ngIf="editando" [(ngModel)]="seleccionado.area_responsable" placeholder="Área o gerencia"/>
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.area_responsable || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Fecha de vigencia</label>
+        <input *ngIf="editando" type="date" [(ngModel)]="seleccionado.fecha_vigencia"/>
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.fecha_vigencia || '—' }}</div>
+      </div>
+      <div class="det-field">
+        <label>Próxima revisión</label>
+        <input *ngIf="editando" type="date" [(ngModel)]="seleccionado.fecha_revision"/>
+        <div *ngIf="!editando" class="det-val">{{ seleccionado.fecha_revision || '—' }}</div>
+      </div>
+    </div>
+
+    <div class="det-field full">
+      <label>Descripción / Alcance</label>
+      <textarea *ngIf="editando" [(ngModel)]="seleccionado.descripcion" rows="4"
+        placeholder="Describí el alcance y objetivo del procedimiento..."></textarea>
+      <div *ngIf="!editando" class="det-val" style="white-space: pre-line">
+        {{ seleccionado.descripcion || 'Sin descripción cargada.' }}
+      </div>
+    </div>
+
+    <div class="det-field full" style="margin-top:.5rem">
+      <label>Pasos del procedimiento</label>
+      <textarea *ngIf="editando" [(ngModel)]="seleccionado.pasos" rows="8"
+        placeholder="1. Primer paso&#10;2. Segundo paso..."></textarea>
+      <div *ngIf="!editando" class="det-val" style="white-space: pre-line; line-height:1.7">
+        {{ seleccionado.pasos || 'Contenido pendiente de carga.' }}
+      </div>
+    </div>
+
+    <div class="det-field full" *ngIf="editando || seleccionado.observaciones">
+      <label>Observaciones internas</label>
+      <textarea *ngIf="editando" [(ngModel)]="seleccionado.observaciones" rows="3"></textarea>
+      <div *ngIf="!editando" class="det-val" style="white-space:pre-line; color:var(--gr); font-style:italic">
+        {{ seleccionado.observaciones }}
+      </div>
+    </div>
+
+    <!-- DESCRIPTIVOS VINCULADOS -->
+    <div class="vinculados-section">
+      <div class="vinculados-title">
+        Descriptivos que incluyen este procedimiento
+        <span style="font-weight:400; text-transform:none; letter-spacing:0; font-size:.7rem; margin-left:.5rem; color:var(--ag)">
+          ({{ descriptivosVinculados.length }} encontrados)
+        </span>
+      </div>
+      <div class="vinculados-list" *ngIf="descriptivosVinculados.length > 0">
+        <span *ngFor="let d of descriptivosVinculados" class="vinculado-badge">
+          {{ d.familia_id }} — {{ d.puesto_nombre }}
+        </span>
+      </div>
+      <div *ngIf="descriptivosVinculados.length === 0" class="vinculados-empty">
+        Ningún descriptivo tiene asignado este procedimiento aún.
+      </div>
+    </div>
+
+  </div>
+
+</div>

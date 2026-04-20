@@ -10,7 +10,11 @@
       <button class="btn btn-s" (click)="exportarCSV()" [disabled]="!hayResultados()" *ngIf="rolUsuario !== 'rrhh'">
         Exportar CSV
       </button>
+<<<<<<< HEAD
       <button class="btn btn-p" (click)="abrirModal()" *ngIf="rolUsuario !== 'rrhh'">+ Agregar</button>
+=======
+      <button class="btn btn-p" (click)="abrirModal()">+ Agregar</button>
+>>>>>>> af31aa045621b720edcd605f08bf4e3f7171d7d4
     </div>
   </div>
 
@@ -116,4 +120,69 @@
     <button class="btn btn-s" (click)="limpiarFiltros()">Limpiar filtros</button>
   </div>
 
+</div>
+
+<div class="modal-overlay" *ngIf="modalAbierto" (click)="cerrarModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+
+    <div class="modal-header">
+      <div class="modal-title">Nuevo Empleado</div>
+      <button class="modal-close" (click)="cerrarModal()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Legajo *</label>
+          <input type="text" [(ngModel)]="form.legajo" placeholder="Ej: 5633"/>
+        </div>
+        <div class="form-group">
+          <label>Código ARSA</label>
+          <input type="text" [(ngModel)]="form.codigo_arsa" placeholder="Ej: ADM-001"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Apellido y Nombre *</label>
+        <input type="text" [(ngModel)]="form.apellido_nombre" placeholder="APELLIDO, Nombre"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sede</label>
+          <input type="text" [(ngModel)]="form.sede" placeholder="Ej: Viedma Central"/>
+        </div>
+        <div class="form-group">
+          <label>Puesto</label>
+          <input type="text" [(ngModel)]="form.puesto" placeholder="Ej: Administración"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Categoría</label>
+          <input type="text" [(ngModel)]="form.categoria" placeholder="Ej: N3-T1-ST2"/>
+        </div>
+        <div class="form-group">
+          <label>Nivel CCT</label>
+          <input type="text" [(ngModel)]="form.nivel_cct" placeholder="Ej: N 3 - T 1"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Estado relevamiento</label>
+        <select [(ngModel)]="form.estado_relev">
+          <option value="PENDIENTE">Pendiente</option>
+          <option value="ENTREVISTADO">Entrevistado</option>
+          <option value="REVISIÓN">Revisión</option>
+          <option value="COMPLETADO">Completado</option>
+        </select>
+      </div>
+      <div class="modal-error" *ngIf="errorModal">{{ errorModal }}</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-s" (click)="cerrarModal()">Cancelar</button>
+      <button class="btn btn-p" (click)="guardar()" [disabled]="guardando">
+        {{ guardando ? 'Guardando...' : 'Crear empleado' }}
+      </button>
+    </div>
+
+  </div>
 </div>

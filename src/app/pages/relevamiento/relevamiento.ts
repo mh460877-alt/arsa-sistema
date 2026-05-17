@@ -125,15 +125,11 @@ export class Relevamiento implements OnInit {
   ngOnInit() {
     const raw = localStorage.getItem('usuario');
     if (raw) {
-<<<<<<< HEAD
       const u = JSON.parse(raw);
       this.rolUsuario = (u.rol || '').toLowerCase();
     }
     if (this.rolUsuario === 'rrhh') {
       this.filtroEstado = 'COMPLETADO';
-=======
-      try { this.rolUsuario = JSON.parse(raw).rol || ''; } catch { }
->>>>>>> af31aa045621b720edcd605f08bf4e3f7171d7d4
     }
     this.cargarStats();
   }

@@ -86,23 +86,15 @@ export class Nomina implements OnInit, OnDestroy {
   private destroy$        = new Subject<void>();
   rolUsuario: string = '';
 
-  modalAbierto = false;
-  guardando    = false;
-  errorModal   = '';
-  form: any = {
-    legajo: '', codigo_arsa: '', apellido_nombre: '',
-    sede: '', puesto: '', categoria: '', estado_relev: 'PENDIENTE'
-  };
-
   // ── Modal Agregar ─────────────────────────────────────────────────
   modalAbierto = false;
   guardando    = false;
   errorModal   = '';
   form: any = {
-  legajo: '', codigo_arsa: '', apellido_nombre: '',
-  sede: '', puesto: '', categoria: '',
-  nivel_cct: '', estado_relev: 'PENDIENTE'
-};
+    legajo: '', codigo_arsa: '', apellido_nombre: '',
+    sede: '', puesto: '', categoria: '',
+    nivel_cct: '', estado_relev: 'PENDIENTE'
+  };
 
   constructor(private api: ApiService) {}
 
@@ -146,11 +138,7 @@ if (this.rolUsuario === 'rrhh') {
             sede:            r.sede            || '—',
             puesto:          r.puesto          || '—',
             categoria:       r.categoria       || '—',
-<<<<<<< HEAD
             estado_relev:    r.estado_relev === 'PRESENTADO A RRHH' ? 'COMPLETADO' : (r.estado_relev || 'PENDIENTE'),
-=======
-            estado_relev:    r.estado_relev    || 'PENDIENTE',
->>>>>>> af31aa045621b720edcd605f08bf4e3f7171d7d4
           }));
           this.aplicarFiltros();
         } else {
@@ -288,20 +276,12 @@ if (this.rolUsuario === 'rrhh') {
     if (c === 'CAT4') return 'CAT 4';
     return cat || '—';
   }
-<<<<<<< HEAD
 
-  formVacio() {
-    return {
-      legajo: '', codigo_arsa: '', apellido_nombre: '',
-      sede: '', puesto: '', categoria: '', estado_relev: 'PENDIENTE'
-=======
-  
   formVacio() {
     return {
       legajo: '', codigo_arsa: '', apellido_nombre: '',
       sede: '', puesto: '', categoria: '',
       nivel_cct: '', estado_relev: 'PENDIENTE'
->>>>>>> af31aa045621b720edcd605f08bf4e3f7171d7d4
     };
   }
 

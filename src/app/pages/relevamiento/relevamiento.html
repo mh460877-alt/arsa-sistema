@@ -7,14 +7,9 @@
       <div class="ph-title">Relevamiento</div>
     </div>
     <div class="ph-right">
-<<<<<<< HEAD
-      <button class="btn btn-p" (click)="mostrarForm = !mostrarForm; mostrarEdicion = false" *ngIf="rolUsuario !== 'rrhh'">
-        {{ mostrarForm ? 'Cancelar' : '+ Nueva entrevista' }}
-=======
       <span class="rol-badge" [ngClass]="'rb-' + rolUsuario">{{ labelRol }}</span>
       <button class="btn btn-s" (click)="exportarCSV()" [disabled]="!hayResultados()">
         Exportar CSV
->>>>>>> af31aa045621b720edcd605f08bf4e3f7171d7d4
       </button>
     </div>
   </div>

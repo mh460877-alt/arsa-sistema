@@ -292,6 +292,65 @@ function getLinkDefinitivo(legajo) {
 
 
 // ══════════════════════════════════════════════════════════════════
+//  DESCRIPTIVOS
+//  Headers de la pestaña Descriptivos (13):
+//    familia_id, familia_nombre, puesto_nombre, sede_alcance, cant_empleados,
+//    categoria, estado, mision, dependencia, publicado, revisor_rrhh,
+//    procs_asignados, link_doc
+// ══════════════════════════════════════════════════════════════════
+
+function saveDescriptivo(data) {
+  // TODO: validar rol admin antes de permitir esta acción (requiere token de sesión, ver CLAUDE.md)
+  return updateRow(TAB_DESCRIPTIVOS, 'familia_id', data);
+}
+
+function createDescriptivo(data) {
+  // TODO: validar rol admin antes de permitir esta acción (requiere token de sesión, ver CLAUDE.md)
+  return createRow(TAB_DESCRIPTIVOS, data, 'familia_id');
+}
+
+// publicar: marca un descriptivo como publicado.
+// Si viene autor Y revisor_rrhh está vacío, lo registra como acta de publicación.
+// Si revisor_rrhh ya tiene contenido (comentarios previos), NO lo pisa — preserva el historial.
+function publicar(familia_id, autor) {
+  if (!familia_id) return { ok: false, error: 'Falta familia_id' };
+
+  const rows = getRows(TAB_DESCRIPTIVOS);
+  const row = rows.find(function(r) { return r.familia_id === familia_id; });
+  if (!row) return { ok: false, error: 'Descriptivo no encontrado: familia_id=' + familia_id };
+
+  const update = {
+    familia_id: familia_id,
+    publicado:  'SI',
+    estado:     'Publicado'
+  };
+
+  if (autor && !str(row.revisor_rrhh)) {
+    update.revisor_rrhh = 'Publicado por ' + autor;
+  }
+
+  return updateRow(TAB_DESCRIPTIVOS, 'familia_id', update);
+}
+
+// comentar: sobrescribe revisor_rrhh con [autor · DD/MM/YYYY]: texto.
+// Formato heredado del ARSA_Backend — pobre pero compatible.
+function comentar(familia_id, texto, autor) {
+  if (!familia_id) return { ok: false, error: 'Falta familia_id' };
+  if (!texto)      return { ok: false, error: 'Falta texto del comentario' };
+
+  const d = new Date();
+  const hoy = [d.getDate(), d.getMonth() + 1, d.getFullYear()]
+    .map(function(n) { return String(n).padStart(2, '0'); })
+    .join('/');
+
+  return updateRow(TAB_DESCRIPTIVOS, 'familia_id', {
+    familia_id:    familia_id,
+    revisor_rrhh:  '[' + (autor || 'RRHH') + ' · ' + hoy + ']: ' + texto
+  });
+}
+
+
+// ══════════════════════════════════════════════════════════════════
 //  GET — punto de entrada principal
 // ══════════════════════════════════════════════════════════════════
 function doGet(e) {
@@ -485,6 +544,10 @@ function doPost(e) {
       // necesita altas manuales de empleados, hay que decidir: (a) crear pestaña 'Nomina' separada,
       // o (b) hacer que createEmpleado agregue fila al nomenclador principal directamente.
       case 'createEmpleado':    res = createRow('Nomina', body.data, 'legajo'); break;
+      case 'saveDescriptivo':   res = saveDescriptivo(body.data); break;
+      case 'createDescriptivo': res = createDescriptivo(body.data); break;
+      case 'publicar':          res = publicar(body.data && body.data.familia_id, body.data && body.data.autor); break;
+      case 'comentar':          res = comentar(body.data && body.data.familia_id, body.data && body.data.texto, body.data && body.data.autor); break;
       default: res = { ok: false, error: 'Acción no reconocida' };
     }
     return json(res);

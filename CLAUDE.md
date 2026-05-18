@@ -148,6 +148,7 @@ Usuarios demo (Sheets `Usuarios`):
 1. El `authGuard` valida solo presencia de `usuario` en localStorage. El Apps Script no pide token, así que cualquiera con la URL podría llamar a la API directo. Agregar token de sesión en algún momento.
 2. Las contraseñas en `Usuarios` están en texto plano. Hashearlas (al menos SHA-256 con salt) cuando se implemente el módulo de Usuarios.
 3. CORS abierto a "Cualquier persona" en la implementación del Apps Script. OK para desarrollo, revisar antes de producción.
+4. Validación de rol en el backend es defensiva pero confía en el cliente. Cuando se agreguen tokens de sesión, el rol debe extraerse del token, no del body.
 
 ## Próximos pasos sugeridos (orden de prioridad)
 

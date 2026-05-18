@@ -90,8 +90,8 @@
       <line x1="12" y1="8" x2="12" y2="12" />
       <line x1="12" y1="16" x2="12.01" y2="16" />
     </svg>
-    Para marcar como <strong>Completado</strong> el perfil debe tener el link definitivo cargado.
-    Al completarse se publica automáticamente en <strong>Descriptivos de Puesto</strong>.
+    Para marcar como <strong>Presentado a RRHH</strong> el perfil debe tener el link definitivo cargado.
+    RRHH después revisa y decide pasarlo a Completado o devolverlo a Revisión con observaciones.
   </div>
 
   <!-- SIN BÚSQUEDA -->
@@ -335,8 +335,7 @@
       </div>
       <div class="modal-sub">{{ modalLink.empleado?.apellido_nombre }}</div>
       <div *ngIf="modalLink.tipo === 'definitivo'" class="modal-aclaracion">
-        Una vez cargado el link, cambiá el estado a
-        <strong>Completado</strong> para publicar en Descriptivos.
+        Una vez cargado el link, cambiá el estado a <strong>Presentado a RRHH</strong> para que sea revisado.
       </div>
       <button class="modal-close" (click)="cerrarModal()">✕</button>
     </div>

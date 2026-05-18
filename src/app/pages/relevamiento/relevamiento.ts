@@ -106,7 +106,7 @@ export class Relevamiento implements OnInit {
   guardadoMsg = '';
 
   // ── Stats ─────────────────────────────────────────────────────────
-  stats = { total: 859, pendiente: 0, entrevistado: 0, revision: 0, completado: 0, avance: 0 };
+  stats = { total: 860, pendiente: 0, entrevistado: 0, presentadoRrhh: 0, revision: 0, completado: 0, avance: 0 };
 
   // ── Modal link ────────────────────────────────────────────────────
   modalLink: {
@@ -159,19 +159,17 @@ export class Relevamiento implements OnInit {
   cargarStats(): void {
     this.api.stats().subscribe({
       next: (res) => {
-        if (res.ok) {
+        if (res.ok && res.data) {
           const d = res.data;
-          // Calcular pendientes desde la nómina total menos completadas
-          const completado = d.completadas || 0;
-          const total = d.total_empleados || 859;
-          const entrevistado = d.total_entrevistas || 0;
+          const pe = d.porEstado || {};
           this.stats = {
-            total,
-            pendiente: Math.max(0, total - entrevistado),
-            entrevistado: Math.max(0, entrevistado - completado),
-            revision: 0,
-            completado,
-            avance: total > 0 ? Math.round((completado / total) * 100) : 0,
+            total:          d.total || 0,
+            pendiente:      pe['PENDIENTE'] || 0,
+            entrevistado:   pe['ENTREVISTADO'] || 0,
+            presentadoRrhh: pe['PRESENTADO A RRHH'] || 0,
+            revision:       pe['REVISIÓN'] || 0,
+            completado:     pe['COMPLETADO'] || 0,
+            avance:         d.avancePct || 0,
           };
         }
       },
@@ -203,19 +201,19 @@ export class Relevamiento implements OnInit {
       next: (res) => {
         if (res.ok) {
           this.todosLosEmpleados = (res.data as any[]).map(r => ({
-            legajo: r.legajo || '—',
+            legajo:          r.legajo || '—',
             apellido_nombre: r.apellido_nombre || '—',
-            codigo: r.codigo_arsa || '—',
-            sede: r.sede || '—',
-            sedeName: r.sede || '—',
-            familia: (r.codigo_arsa || '').split('-')[0] || '—',
-            familiaNombre: r.puesto || '—',
-            estado: (r.estado_relev || 'PENDIENTE').toUpperCase(),
-            linkBorrador: r.link_sin_revision || '',
-            linkDefinitivo: r.link_definitivo || '',
-            transcripcion: r.transcripcion || '',
-            eneagrama: r.eneagrama || '',
-            observacion: r.observacion_privada || '',
+            codigo:          r.codigo || '—',
+            sede:            r.sede || '—',
+            sedeName:        r.sedeName || r.sede || '—',
+            familia:         r.familia || '—',
+            familiaNombre:   r.familiaNombre || r.puesto || '—',
+            estado:          (r.estado || r.estado_relev || 'PENDIENTE').toUpperCase(),
+            linkBorrador:    r.linkBorrador || '',
+            linkDefinitivo:  r.linkDefinitivo || '',
+            transcripcion:   r.transcripcion || '',
+            eneagrama:       r.eneagrama || '',
+            observacion:     r.observacion || '',
           }));
           this.aplicarFiltros();
         } else {

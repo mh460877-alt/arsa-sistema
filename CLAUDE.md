@@ -1,7 +1,7 @@
 # ARSA Sistema — Contexto del proyecto
 
 ## Qué es
-Plataforma para la **actualización de descriptivos de puesto** de Aguas Rionegrinas S.A. (ARSA), empresa de agua estatal de Río Negro. Alcance: **859 empleados**, ~70 puestos, 4 meses. Ejecuta Escencial Consultora.
+Plataforma para la **actualización de descriptivos de puesto** de Aguas Rionegrinas S.A. (ARSA), empresa de agua estatal de Río Negro. Alcance: **860 empleados**, ~70 puestos, 4 meses. Ejecuta Escencial Consultora.
 
 Última actualización de descriptivos en ARSA: 2007. Por eso el proyecto.
 
@@ -88,7 +88,7 @@ El sistema bloquea pasar a `COMPLETADO` sin link definitivo cargado.
 
 ## Datos de referencia del nomenclador
 
-- **859 empleados** totales
+- **860 empleados** totales
 - **13 familias:** OPA (223), ADM (138), AYC (137), OPC (68), TEC (59), EM (72), JEF (45), CAP (29), COM (27), PROF (27), GER (19), OTR (12), PAS (3)
 - **47 sedes** con códigos de 3 letras (VDC = Viedma Central, BRC = Bariloche, etc.)
 
@@ -170,7 +170,7 @@ Usuarios demo (Sheets `Usuarios`):
 
 ## Glosario rápido
 
-- **Nomenclador:** el Excel maestro con los 859 empleados codificados, fuente de verdad de la nómina
+- **Nomenclador:** el Excel maestro con los 860 empleados codificados, fuente de verdad de la nómina
 - **Descriptivo:** documento que describe un puesto (misión, funciones, dependencia, procedimientos relacionados)
 - **Relevamiento:** el proceso de entrevistar empleados para armar los descriptivos
 - **Familia:** agrupación de puestos similares (ej: ADM = administración)

@@ -287,7 +287,7 @@ export class Relevamiento implements OnInit {
 
     this.api.post({
       action: 'updateEntrevista',
-      data: { id_entrevista: emp.legajo, estado: nuevoEstado }
+      data: { id_entrevista: emp.legajo, estado: nuevoEstado, rol: this.rolUsuario }
     }).subscribe({
       next: (res) => {
         if (!res.ok) {
@@ -321,6 +321,7 @@ export class Relevamiento implements OnInit {
         transcripcion: emp.transcripcion || '',
         eneagrama: emp.eneagrama || '',
         observacion_privada: emp.observacion || '',
+        rol: this.rolUsuario,
       }
     }).subscribe({
       next: (res) => {
@@ -358,6 +359,7 @@ export class Relevamiento implements OnInit {
         id_entrevista: emp.legajo,
         link_sin_revision: tipo === 'borrador' ? urlLimpia : undefined,
         link_definitivo: tipo === 'definitivo' ? urlLimpia : undefined,
+        rol: this.rolUsuario,
       }
     }).subscribe({
       next: (res) => {

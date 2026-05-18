@@ -5,7 +5,7 @@ import { Observable, from } from 'rxjs';
 @Injectable({ providedIn: 'root' })
 export class ApiService {
 
-  private url = 'https://script.google.com/macros/s/AKfycbzte9JEZnK8pe6E_fOUNrwCxfZpCy6RLb0jNcrMpKVUE0_kAeczgmM0VCxpZq2WWRn4pg/exec';
+  private url = 'https://script.google.com/macros/s/AKfycbzfZuxFDewRwu49fKyXEJvK4Vk55pJLrPg1tf2_XnA9othbql46_H8FduY_4LdOn9Ii/exec';
 
   constructor(private http: HttpClient) { }
 

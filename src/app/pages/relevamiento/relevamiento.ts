@@ -129,7 +129,7 @@ export class Relevamiento implements OnInit {
       this.rolUsuario = (u.rol || '').toLowerCase();
     }
     if (this.rolUsuario === 'rrhh') {
-      this.filtroEstado = 'COMPLETADO';
+      this.filtroEstado = 'PRESENTADO A RRHH';
     }
     this.cargarStats();
   }

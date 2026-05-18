@@ -118,7 +118,7 @@ if (raw) {
     this.rolUsuario = (JSON.parse(raw).rol || '').toLowerCase();
 }
 if (this.rolUsuario === 'rrhh') {
-    this.filtroEstado = 'COMPLETADO';
+    this.filtroEstado = 'PRESENTADO A RRHH';
 }
 
     // Cargar todos los empleados al iniciar

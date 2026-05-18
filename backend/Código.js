@@ -401,7 +401,9 @@ function doGet(e) {
     else if (accion === 'familias')          res = { ok: true, data: FAMILIAS };
     else if (accion === 'sedes')             res = { ok: true, data: SEDES };
     else if (accion === 'login')             res = login(p.usuario, p.password);
-    else if (accion === 'read')              res = { ok: true, data: getRows(p.tab) };
+    else if (accion === 'read')              res = (p.tab === 'Nomina')
+                                               ? getNomina({ all: 'true' }, rol)
+                                               : { ok: true, data: getRows(p.tab) };
     else if (accion === 'getLinkDefinitivo') res = getLinkDefinitivo(p.legajo);
     else                                     res = { ok: false, error: 'Acción no reconocida' };
   } catch (err) {
@@ -424,9 +426,15 @@ function getNomina(p, rol) {
   const fLegajo  = (p.legajo  || '').trim();
   const fQ       = (p.q       || '').toLowerCase().trim();
 
-  // Si no hay ningún filtro activo, devolver vacío (búsqueda bajo demanda)
   const hayFiltro = fFamilia || fSede || fEstado || fLegajo || fQ;
-  if (!hayFiltro) return { ok: true, total: 0, data: [], vacio: true };
+  const all = p.all === 'true' || p.all === true;
+
+  // Si pide all=true sin rol válido, rechazar (protege los campos privados)
+  if (all && rol !== 'admin' && rol !== 'rrhh') {
+    return { ok: false, error: 'Acceso completo requiere rol admin o rrhh' };
+  }
+
+  if (!hayFiltro && !all) return { ok: true, total: 0, data: [], vacio: true };
 
   const lista = [];
 

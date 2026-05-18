@@ -28,9 +28,11 @@ export class ApiService {
   }
 
   leerTabla(tab: string): Observable<any> {
+    const rol = localStorage.getItem('rol') || '';
     const params = new HttpParams()
       .set('action', 'read')
-      .set('tab', tab);
+      .set('tab', tab)
+      .set('rol', rol);
     return this.http.get(this.url, { params });
   }
 

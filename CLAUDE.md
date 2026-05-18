@@ -149,6 +149,7 @@ Usuarios demo (Sheets `Usuarios`):
 2. Las contraseñas en `Usuarios` están en texto plano. Hashearlas (al menos SHA-256 con salt) cuando se implemente el módulo de Usuarios.
 3. CORS abierto a "Cualquier persona" en la implementación del Apps Script. OK para desarrollo, revisar antes de producción.
 4. Validación de rol en el backend es defensiva pero confía en el cliente. Cuando se agreguen tokens de sesión, el rol debe extraerse del token, no del body.
+5. `doGet` en `backend/Código.js` defaultea `rol='admin'` cuando no llega `?rol=`. Esto bypassea checks como el de `?action=read&tab=Nomina` para curls directos sin rol. Los frontends sí mandan el rol del localStorage, así que el caso real está cubierto — el agujero es solo para callers que no especifican rol. Resolver al implementar tokens (extraer rol del token, eliminar el default).
 
 ## Próximos pasos sugeridos (orden de prioridad)
 

@@ -181,7 +181,10 @@ const SEDES = {
 //  NO usar para NOMENCLADOR DE PUESTO (que tiene título en fila 1).
 // ══════════════════════════════════════════════════════════════════
 
-function getRows(tabName) {
+// Lectura cruda — uso INTERNO únicamente. NO exponer vía dispatch (action=read);
+// para eso está getRows() que aplica el strip de credenciales.
+// Lo usa login() porque necesita comparar el password contra el sheet.
+function _readRowsRaw(tabName) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(tabName);
   if (!sheet) throw new Error('No existe la pestaña: ' + tabName);
   const lastRow = sheet.getLastRow();
@@ -196,6 +199,19 @@ function getRows(tabName) {
       keys.forEach(function(key, i) { if (key) obj[key] = String(row[i]).trim(); });
       return obj;
     });
+}
+
+// Lectura "segura" — siempre strippea campos de credenciales antes de devolver.
+// Defensa para evitar fugas si alguien (frontend o curl) llama ?action=read&tab=Usuarios
+// y la pestaña tiene un campo password en texto plano. Cubre nombres comunes:
+// password / passwd / pwd. Si mañana aparece otra pestaña con credenciales bajo otro
+// nombre, agregar el nombre acá y queda cubierto automáticamente.
+function getRows(tabName) {
+  const SENSITIVE = ['password', 'passwd', 'pwd'];
+  return _readRowsRaw(tabName).map(function(row) {
+    SENSITIVE.forEach(function(k) { delete row[k]; });
+    return row;
+  });
 }
 
 function appendRow(tabName, data) {
@@ -248,7 +264,9 @@ function createRow(tabName, data, uniqueKey) {
 
 function login(usuario, password) {
   if (!usuario) return { ok: false, error: 'Ingresa tu usuario' };
-  const rows = getRows(TAB_USUARIOS);
+  // _readRowsRaw conserva el campo password para poder validarlo. NUNCA devolver estas
+  // filas tal cual al cliente — el strip de safe.password al final del flujo es obligatorio.
+  const rows = _readRowsRaw(TAB_USUARIOS);
   const user = rows.find(function(r) {
     return r.usuario && r.usuario.toLowerCase() === usuario.toLowerCase() &&
            r.password && r.password === password;
@@ -347,6 +365,22 @@ function comentar(familia_id, texto, autor) {
     familia_id:    familia_id,
     revisor_rrhh:  '[' + (autor || 'RRHH') + ' · ' + hoy + ']: ' + texto
   });
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+//  PROCEDIMIENTOS
+//  Pestaña 'Procedimientos' — 5 columnas: id, nombre, area, categoria, link_doc
+// ══════════════════════════════════════════════════════════════════
+
+function saveProcedimiento(data) {
+  // TODO: validar rol admin antes de permitir esta acción (requiere token de sesión, ver CLAUDE.md)
+  return updateRow('Procedimientos', 'id', data);
+}
+
+function createProcedimiento(data) {
+  // TODO: validar rol admin antes de permitir esta acción (requiere token de sesión, ver CLAUDE.md)
+  return createRow('Procedimientos', data, 'id');
 }
 
 
@@ -548,6 +582,9 @@ function doPost(e) {
       case 'createDescriptivo': res = createDescriptivo(body.data); break;
       case 'publicar':          res = publicar(body.data && body.data.familia_id, body.data && body.data.autor); break;
       case 'comentar':          res = comentar(body.data && body.data.familia_id, body.data && body.data.texto, body.data && body.data.autor); break;
+      case 'saveProcedimiento':   res = saveProcedimiento(body.data); break;
+      case 'createProcedimiento': res = createProcedimiento(body.data); break;
+      case 'createUsuario':       res = createRow(TAB_USUARIOS, body.data, 'usuario'); break;
       default: res = { ok: false, error: 'Acción no reconocida' };
     }
     return json(res);

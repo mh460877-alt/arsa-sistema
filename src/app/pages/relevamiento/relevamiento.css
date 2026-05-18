@@ -386,6 +386,9 @@
 /* ── Links ──────────────────────────────────── */
 .td-link {
   white-space: nowrap;
+}
+
+.td-link-inner {
   display: flex;
   flex-direction: row;
   align-items: center;

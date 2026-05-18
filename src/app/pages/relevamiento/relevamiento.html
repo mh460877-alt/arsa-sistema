@@ -174,71 +174,75 @@
 
             <!-- Borrador — UN solo bloque con if/else -->
             <td class="td-link">
-              <ng-container *ngIf="e.linkBorrador; else sinBorrador">
-                <a [href]="e.linkBorrador" target="_blank" class="link-doc">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
-                  Ver
-                </a>
-                <!-- Solo Admin puede editar el link -->
-                <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'borrador')"
-                  title="Editar link">✎</button>
-              </ng-container>
-              <ng-template #sinBorrador>
-                <button *ngIf="puedeEditar" class="btn-cargar" (click)="abrirModalLink(e, 'borrador')">+ Cargar</button>
-                <!-- RRHH sin link: solo guion -->
-                <span *ngIf="!puedeEditar" class="sin-link">—</span>
-              </ng-template>
+              <div class="td-link-inner">
+                <ng-container *ngIf="e.linkBorrador; else sinBorrador">
+                  <a [href]="e.linkBorrador" target="_blank" class="link-doc">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    Ver
+                  </a>
+                  <!-- Solo Admin puede editar el link -->
+                  <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'borrador')"
+                    title="Editar link">✎</button>
+                </ng-container>
+                <ng-template #sinBorrador>
+                  <button *ngIf="puedeEditar" class="btn-cargar" (click)="abrirModalLink(e, 'borrador')">+ Cargar</button>
+                  <!-- RRHH sin link: solo guion -->
+                  <span *ngIf="!puedeEditar" class="sin-link">—</span>
+                </ng-template>
+              </div>
             </td>
 
             <!-- Definitivo — UN solo bloque, condiciones mutuamente excluyentes -->
             <td class="td-link">
+              <div class="td-link-inner">
 
-              <!-- Caso 1: publicado (COMPLETADO + link) -->
-              <ng-container *ngIf="estaPublicado(e)">
-                <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-publicado">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  Publicado
-                </a>
-                <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'definitivo')"
-                  title="Editar link">✎</button>
-              </ng-container>
+                <!-- Caso 1: publicado (COMPLETADO + link) -->
+                <ng-container *ngIf="estaPublicado(e)">
+                  <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-publicado">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Publicado
+                  </a>
+                  <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'definitivo')"
+                    title="Editar link">✎</button>
+                </ng-container>
 
-              <!-- Caso 2: tiene link pero NO completado -->
-              <ng-container *ngIf="!estaPublicado(e) && definitivoSinAprobar(e)">
-                <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-def">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                  </svg>
-                  Ver
-                </a>
-                <span class="badge-pendiente-aprobacion">Pendiente aprobación</span>
-                <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'definitivo')"
-                  title="Editar link">✎</button>
-              </ng-container>
+                <!-- Caso 2: tiene link pero NO completado -->
+                <ng-container *ngIf="!estaPublicado(e) && definitivoSinAprobar(e)">
+                  <a [href]="e.linkDefinitivo" target="_blank" class="link-doc link-def">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                    </svg>
+                    Ver
+                  </a>
+                  <span class="badge-pendiente-aprobacion">Pendiente aprobación</span>
+                  <button *ngIf="puedeEditar" class="btn-edit-link" (click)="abrirModalLink(e, 'definitivo')"
+                    title="Editar link">✎</button>
+                </ng-container>
 
-              <!-- Caso 3: en REVISIÓN sin link -->
-              <ng-container *ngIf="!estaPublicado(e) && !e.linkDefinitivo && definitivoPendiente(e)">
-                <span class="badge-correccion">⚠ Requiere corrección</span>
-                <button *ngIf="puedeEditar" class="btn-cargar btn-cargar--alerta"
-                  (click)="abrirModalLink(e, 'definitivo')">+ Cargar</button>
-              </ng-container>
+                <!-- Caso 3: en REVISIÓN sin link -->
+                <ng-container *ngIf="!estaPublicado(e) && !e.linkDefinitivo && definitivoPendiente(e)">
+                  <span class="badge-correccion">⚠ Requiere corrección</span>
+                  <button *ngIf="puedeEditar" class="btn-cargar btn-cargar--alerta"
+                    (click)="abrirModalLink(e, 'definitivo')">+ Cargar</button>
+                </ng-container>
 
-              <!-- Caso 4: sin link y sin estado especial -->
-              <ng-container *ngIf="!estaPublicado(e) && !e.linkDefinitivo && !definitivoPendiente(e)">
-                <button *ngIf="puedeEditar" class="btn-cargar" (click)="abrirModalLink(e, 'definitivo')">+
-                  Cargar</button>
-                <span *ngIf="!puedeEditar" class="sin-link">—</span>
-              </ng-container>
+                <!-- Caso 4: sin link y sin estado especial -->
+                <ng-container *ngIf="!estaPublicado(e) && !e.linkDefinitivo && !definitivoPendiente(e)">
+                  <button *ngIf="puedeEditar" class="btn-cargar" (click)="abrirModalLink(e, 'definitivo')">+
+                    Cargar</button>
+                  <span *ngIf="!puedeEditar" class="sin-link">—</span>
+                </ng-container>
 
+              </div>
             </td>
 
             <!-- Expandir campos privados -->

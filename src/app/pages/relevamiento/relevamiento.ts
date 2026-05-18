@@ -130,6 +130,7 @@ export class Relevamiento implements OnInit {
     }
     if (this.rolUsuario === 'rrhh') {
       this.filtroEstado = 'PRESENTADO A RRHH';
+      this.buscar();
     }
     this.cargarStats();
   }

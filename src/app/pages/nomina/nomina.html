@@ -42,12 +42,13 @@
       <option *ngFor="let f of listaFamilias" [value]="f.code">{{ f.name }}</option>
     </select>
 
-    <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="onFiltroChange()" *ngIf="rolUsuario !== 'rrhh'">
+    <select class="tbl-filter" [(ngModel)]="filtroEstado" (change)="onFiltroChange()">
       <option value="">Todos los estados</option>
       <option value="PENDIENTE">Pendiente</option>
       <option value="ENTREVISTADO">Entrevistado</option>
+      <option value="PRESENTADO A RRHH">Presentado a RRHH</option>
       <option value="REVISIÓN">Revisión</option>
-      <option value="COMPLETADO">Presentado a RRHH</option>
+      <option value="COMPLETADO">Completado</option>
     </select>
   </div>
 

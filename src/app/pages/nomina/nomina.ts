@@ -147,7 +147,7 @@ if (this.rolUsuario === 'rrhh') {
             familia:         r.familia         || '—',
             puesto:          r.puesto          || '—',
             categoria:       r.catServicio || r.categoria || '—',
-            estado_relev:    r.estado_relev === 'PRESENTADO A RRHH' ? 'COMPLETADO' : (r.estado_relev || 'PENDIENTE'),
+            estado_relev:    r.estado_relev || 'PENDIENTE',
           }));
           this.aplicarFiltros();
         } else {

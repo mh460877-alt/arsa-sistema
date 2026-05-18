@@ -205,6 +205,7 @@ export class Relevamiento implements OnInit {
             apellido_nombre: r.apellido_nombre || '—',
             codigo:          r.codigo || '—',
             sede:            r.sede || '—',
+            sedeCode:        r.sedeCode || '',
             sedeName:        r.sedeName || r.sede || '—',
             familia:         r.familia || '—',
             familiaNombre:   r.familiaNombre || r.puesto || '—',
@@ -244,9 +245,7 @@ export class Relevamiento implements OnInit {
 
     if (this.filtroSede) {
       lista = lista.filter(e =>
-        e.sede.toLowerCase().includes(
-          SEDES.find(s => s.code === this.filtroSede)?.name.toLowerCase() || this.filtroSede.toLowerCase()
-        )
+        (e.sedeCode || '').toUpperCase() === this.filtroSede.toUpperCase()
       );
     }
 

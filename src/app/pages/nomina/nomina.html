@@ -80,7 +80,7 @@
       </thead>
       <tbody>
         <tr *ngFor="let e of empleadosFiltrados(); trackBy: trackByLegajo">
-          <td class="td-codigo">{{ e.codigo_arsa || '—' }}</td>
+          <td class="td-codigo">{{ e.codigo || '—' }}</td>
           <td class="td-legajo">{{ e.legajo || '—' }}</td>
           <td class="td-nombre">{{ e.apellido_nombre || '—' }}</td>
           <td class="td-sede">{{ e.sede || '—' }}</td>

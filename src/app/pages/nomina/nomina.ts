@@ -5,10 +5,12 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { ApiService } from '../../services/api';
 
 export interface Empleado {
-  codigo_arsa:     string;
+  codigo:          string;
   legajo:          string;
   apellido_nombre: string;
   sede:            string;
+  sedeCode:        string;
+  familia:         string;
   puesto:          string;
   categoria:       string;
   estado_relev:    string;
@@ -31,25 +33,30 @@ const FAMILIAS = [
 ];
 
 const SEDES = [
-  { code: 'Bariloche',          name: 'Bariloche' },
-  { code: 'Gral. Roca',         name: 'Gral. Roca' },
-  { code: 'Viedma',             name: 'Viedma' },
-  { code: 'Allen',              name: 'Allen' },
-  { code: 'Catriel',            name: 'Catriel' },
-  { code: 'Choele Choel',       name: 'Choele Choel' },
-  { code: 'Cinco Saltos',       name: 'Cinco Saltos' },
-  { code: 'Cipolletti',         name: 'Cipolletti' },
-  { code: 'Fernández Oro',      name: 'Fernández Oro' },
-  { code: 'Ing. Huergo',        name: 'Ing. Huergo' },
-  { code: 'Río Colorado',       name: 'Río Colorado' },
-  { code: 'S.A.O.',             name: 'S.A.O.' },
-  { code: 'Gral. Conesa',       name: 'Gral. Conesa' },
-  { code: 'Las Grutas',         name: 'Las Grutas' },
-  { code: 'Sierra Grande',      name: 'Sierra Grande' },
-  { code: 'Valcheta',           name: 'Valcheta' },
-  { code: 'Villa Regina',       name: 'Villa Regina' },
-  { code: 'El Bolsón',          name: 'El Bolsón' },
-  { code: 'Viedma Central',     name: 'Viedma Central' },
+  { code: 'BRC', name: 'Bariloche' }, { code: 'GRC', name: 'Gral. Roca' },
+  { code: 'VDM', name: 'Viedma' }, { code: 'ALL', name: 'Allen' },
+  { code: 'CAT', name: 'Catriel' }, { code: 'CHO', name: 'Choele Choel' },
+  { code: '5ST', name: 'Cinco Saltos' }, { code: 'CPT', name: 'Cipolletti' },
+  { code: 'FRO', name: 'Fernández Oro' }, { code: 'HUE', name: 'Ing. Huergo' },
+  { code: 'RCO', name: 'Río Colorado' }, { code: 'SAO', name: 'S.A.O.' },
+  { code: 'CNS', name: 'Gral. Conesa' }, { code: 'LGR', name: 'Las Grutas' },
+  { code: 'SGR', name: 'Sierra Grande' }, { code: 'VAL', name: 'Valcheta' },
+  { code: 'GEG', name: 'Gral. Enrique Godoy' }, { code: 'CRV', name: 'Cervantes' },
+  { code: 'CHK', name: 'Chichinales' }, { code: 'CCO', name: 'Clte. Cordero' },
+  { code: 'CBE', name: 'Cnel. Belisle' }, { code: 'COM', name: 'Comallo' },
+  { code: 'CNI', name: 'Cona Niyeu' }, { code: 'DAR', name: 'Darwin' },
+  { code: 'ELB', name: 'El Bolsón' }, { code: 'ELC', name: 'El Cóndor' },
+  { code: 'GMI', name: 'Guardia Mitre' }, { code: 'LPE', name: 'Lago Pellegrini' },
+  { code: 'LBE', name: 'Los Berros' }, { code: 'LME', name: 'Los Menucos' },
+  { code: 'MQC', name: 'Maquinchao' }, { code: 'PLP', name: 'Paraje Las Perlas' },
+  { code: 'PIL', name: 'Pilcaniyeu' }, { code: 'POM', name: 'Pomona' },
+  { code: 'PSE', name: 'Puerto S.A.E.' }, { code: 'RME', name: 'Ramos Mexía' },
+  { code: 'RCH', name: 'Río Chico' }, { code: 'SJV', name: 'San Javier' },
+  { code: 'SCO', name: 'Sierra Colorada' }, { code: 'VRE', name: 'Villa Regina' },
+  { code: 'NOR', name: 'Ñorquinco' }, { code: 'VDC', name: 'Viedma Central' },
+  { code: 'SAV', name: 'Subg. Alto Valle' }, { code: 'SVE', name: 'Subg. Alto Valle Este' },
+  { code: 'SAN', name: 'Subg. Andina' }, { code: 'SAT', name: 'Subg. Atlántica' },
+  { code: 'SES', name: 'Subg. Este' },
 ];
 
 @Component({
@@ -132,12 +139,14 @@ if (this.rolUsuario === 'rrhh') {
       next: (res) => {
         if (res.ok) {
           this.todosLosEmpleados = (res.data as any[]).map(r => ({
-            codigo_arsa:     r.codigo_arsa     || '—',
+            codigo:          r.codigo          || '—',
             legajo:          r.legajo          || '—',
             apellido_nombre: r.apellido_nombre || '—',
-            sede:            r.sede            || '—',
+            sede:            r.sedeName || r.sede || '—',
+            sedeCode:        r.sedeCode        || '',
+            familia:         r.familia         || '—',
             puesto:          r.puesto          || '—',
-            categoria:       r.categoria       || '—',
+            categoria:       r.catServicio || r.categoria || '—',
             estado_relev:    r.estado_relev === 'PRESENTADO A RRHH' ? 'COMPLETADO' : (r.estado_relev || 'PENDIENTE'),
           }));
           this.aplicarFiltros();
@@ -162,19 +171,19 @@ if (this.rolUsuario === 'rrhh') {
       lista = lista.filter(e =>
         e.apellido_nombre.toLowerCase().includes(q) ||
         e.legajo.toLowerCase().includes(q) ||
-        e.codigo_arsa.toLowerCase().includes(q)
+        (e.codigo || '').toLowerCase().includes(q)
       );
     }
 
     if (this.filtroSede) {
       lista = lista.filter(e =>
-        e.sede.toLowerCase().includes(this.filtroSede.toLowerCase())
+        (e.sedeCode || '').toUpperCase() === this.filtroSede.toUpperCase()
       );
     }
 
     if (this.filtroFamilia) {
       lista = lista.filter(e =>
-        e.codigo_arsa.toUpperCase().startsWith(this.filtroFamilia.toUpperCase())
+        (e.codigo || '').toUpperCase().startsWith(this.filtroFamilia.toUpperCase())
       );
     }
 
@@ -223,7 +232,7 @@ if (this.rolUsuario === 'rrhh') {
     if (!this.hayResultados()) return;
     const headers = ['Código ARSA', 'Legajo', 'Empleado', 'Sede', 'Puesto', 'CAT', 'Estado'];
     const filas   = this.empleadosFiltrados().map(e => [
-      e.codigo_arsa, e.legajo, e.apellido_nombre,
+      e.codigo, e.legajo, e.apellido_nombre,
       e.sede, e.puesto, e.categoria, e.estado_relev
     ]);
     const csv = [headers, ...filas]

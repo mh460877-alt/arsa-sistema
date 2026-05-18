@@ -45,7 +45,103 @@ const COL = {
   PROC_INTER:   24,   // Y  - proceso intervinientes
 };
 
-const ESTADOS_VALIDOS = ['PENDIENTE', 'ENTREVISTADO', 'REVISIÓN', 'COMPLETADO'];
+const ESTADOS_VALIDOS = [
+  'PENDIENTE',
+  'ENTREVISTADO',
+  'PRESENTADO A RRHH',
+  'REVISIÓN',
+  'COMPLETADO'
+];
+
+// Orden canónico del flujo. REVISIÓN es lateral a PRESENTADO A RRHH (mismo nivel).
+const ORDEN_ESTADO = {
+  'PENDIENTE':         0,
+  'ENTREVISTADO':      1,
+  'PRESENTADO A RRHH': 2,
+  'REVISIÓN':          2,
+  'COMPLETADO':        3
+};
+
+// Tabla de transiciones forward permitidas.
+// Cada entrada: { from, to, roles: [...], requiere: 'link' | 'observacion' | null }
+const TRANSICIONES = [
+  { from: 'PENDIENTE',         to: 'ENTREVISTADO',      roles: ['admin'], requiere: null },
+  { from: 'ENTREVISTADO',      to: 'PRESENTADO A RRHH', roles: ['admin'], requiere: 'link' },
+  { from: 'REVISIÓN',          to: 'PRESENTADO A RRHH', roles: ['admin'], requiere: null },
+  { from: 'PRESENTADO A RRHH', to: 'COMPLETADO',        roles: ['rrhh'],  requiere: null },
+  { from: 'PRESENTADO A RRHH', to: 'REVISIÓN',          roles: ['rrhh'],  requiere: 'observacion' }
+];
+
+// Normaliza valores legacy del Sheets al vocabulario canónico de 5 estados.
+// Variantes no reconocidas → 'PENDIENTE'.
+function normalizarEstado(raw) {
+  const v = str(raw).toUpperCase();
+  if (!v) return 'PENDIENTE';
+  if (v === 'EN CONSTRUCCION' || v === 'EN CONSTRUCCIÓN') return 'ENTREVISTADO';
+  if (ESTADOS_VALIDOS.indexOf(v) >= 0) return v;
+  return 'PENDIENTE';
+}
+
+// Valida una transición de estado. No escribe nada — solo decide si es permitida.
+// Devuelve { ok: true, esReverse: bool } o { ok: false, error: '...' }.
+function validarTransicion(estadoActual, estadoNuevo, rol, datosFila, observacionNueva, forzar) {
+  const actual = normalizarEstado(estadoActual);
+  const nuevo  = normalizarEstado(estadoNuevo);
+  const r      = str(rol).toLowerCase();
+
+  if (ESTADOS_VALIDOS.indexOf(nuevo) < 0) {
+    return { ok: false, error: 'Estado inválido: ' + estadoNuevo };
+  }
+  if (actual === nuevo) {
+    return { ok: false, error: 'No hay cambio de estado' };
+  }
+
+  // Revertir COMPLETADO: solo admin + forzar:true (acto fuerte, descriptivo publicado)
+  if (actual === 'COMPLETADO') {
+    if (r !== 'admin') {
+      return { ok: false, error: 'Solo el rol admin puede revertir un COMPLETADO' };
+    }
+    if (!forzar) {
+      return { ok: false, error: 'COMPLETADO solo se puede revertir con flag forzar:true (requiere confirmación explícita del frontend)' };
+    }
+    return { ok: true, esReverse: true };
+  }
+
+  // Reverse general: admin libre, otros roles no
+  const esReverse = ORDEN_ESTADO[nuevo] < ORDEN_ESTADO[actual];
+  if (esReverse) {
+    if (r !== 'admin') {
+      return { ok: false, error: 'Solo el rol admin puede revertir estados' };
+    }
+    return { ok: true, esReverse: true };
+  }
+
+  // Forward: buscar en tabla
+  let t = null;
+  for (let i = 0; i < TRANSICIONES.length; i++) {
+    if (TRANSICIONES[i].from === actual && TRANSICIONES[i].to === nuevo) { t = TRANSICIONES[i]; break; }
+  }
+  if (!t) {
+    return { ok: false, error: 'Transición no permitida: ' + actual + ' → ' + nuevo };
+  }
+  if (t.roles.indexOf(r) < 0) {
+    return { ok: false, error: "El rol '" + r + "' no puede hacer la transición " + actual + ' → ' + nuevo };
+  }
+
+  if (t.requiere === 'link') {
+    const linkDef = str(datosFila[COL.LINK_DEFIN]);
+    if (!linkDef) {
+      return { ok: false, error: 'Debe cargar el link definitivo (columna U) antes de presentar a RRHH' };
+    }
+  }
+  if (t.requiere === 'observacion') {
+    if (!str(observacionNueva)) {
+      return { ok: false, error: 'Debe agregar observación para marcar como revisión' };
+    }
+  }
+
+  return { ok: true, esReverse: false };
+}
 
 const FAMILIAS = {
   'OPA':'Operaciones Agua','ADM':'Administración','AYC':'Operaciones A y C',
@@ -75,7 +171,7 @@ const SEDES = {
 // ══════════════════════════════════════════════════════════════════
 function doGet(e) {
   const p      = e.parameter || {};
-  const accion = p.accion || 'nomina';
+  const accion = p.action || p.accion || 'nomina';
   const rol    = p.rol    || 'admin';
 
   let res;
@@ -137,9 +233,8 @@ function getNomina(p, rol) {
     const nivelMatch = nts.match(/N\s*(\d+)/i);
     const nivel      = nivelMatch ? 'N' + nivelMatch[1] : '';
 
-    // Normalizar estado
-    const estadoRaw  = str(f[COL.ESTADO]).toUpperCase();
-    const estadoNorm = ESTADOS_VALIDOS.includes(estadoRaw) ? estadoRaw : 'PENDIENTE';
+    // Normalizar estado (incluye mapeo de variantes legacy → canónico)
+    const estadoNorm = normalizarEstado(f[COL.ESTADO]);
 
     // ── Aplicar filtros ──
     if (fFamilia && famCode   !== fFamilia) continue;
@@ -203,10 +298,16 @@ function getStats() {
 
   const stats = {
     total: 0,
-    porEstado:   { PENDIENTE: 0, ENTREVISTADO: 0, 'REVISIÓN': 0, COMPLETADO: 0 },
+    porEstado: {
+      'PENDIENTE':         0,
+      'ENTREVISTADO':      0,
+      'PRESENTADO A RRHH': 0,
+      'REVISIÓN':          0,
+      'COMPLETADO':        0
+    },
     porFamilia:  {},
     porSede:     {},
-    porCat:      { CAT1: 0, CAT2: 0, CAT3: 0, CAT4: 0 },
+    porCat:      { CAT1: 0, CAT2: 0, CAT3: 0, CAT4: 0 }
   };
 
   for (let i = FILA_INICIO - 1; i < datos.length; i++) {
@@ -214,8 +315,7 @@ function getStats() {
     if (!f[COL.CODIGO]) continue;
     stats.total++;
 
-    const est = ESTADOS_VALIDOS.includes(str(f[COL.ESTADO]).toUpperCase())
-      ? str(f[COL.ESTADO]).toUpperCase() : 'PENDIENTE';
+    const est = normalizarEstado(f[COL.ESTADO]);
     stats.porEstado[est] = (stats.porEstado[est] || 0) + 1;
 
     const fam = str(f[COL.CODIGO]).split('-')[0].toUpperCase();
@@ -229,9 +329,10 @@ function getStats() {
     if (stats.porCat[cat] !== undefined) stats.porCat[cat]++;
   }
 
-  const relevados = stats.porEstado.ENTREVISTADO + stats.porEstado['REVISIÓN'] + stats.porEstado.COMPLETADO;
-  stats.avancePct = stats.total > 0 ? Math.round((relevados / stats.total) * 100) : 0;
+  // Avance = todo lo que no es PENDIENTE. Cuenta filas con estado válido (normalizarEstado descarta basura).
+  const relevados = stats.total - stats.porEstado['PENDIENTE'];
   stats.relevados = relevados;
+  stats.avancePct = stats.total > 0 ? Math.round((relevados / stats.total) * 100) : 0;
 
   return { ok: true, data: stats };
 }
@@ -242,9 +343,10 @@ function getStats() {
 function doPost(e) {
   try {
     const body = JSON.parse(e.postData.contents);
+    const accion = body.action || body.accion;
     let res;
-    switch (body.accion) {
-      case 'actualizarEstado':  res = actualizarEstado(body.legajo, body.estado); break;
+    switch (accion) {
+      case 'actualizarEstado':  res = actualizarEstado(body.legajo, body.estado, body.rol, body.observacion, body.forzar); break;
       case 'actualizarLinks':   res = actualizarLinks(body.legajo, body.linkBorrador, body.linkDefinitivo); break;
       case 'guardarPrivados':   res = guardarPrivados(body.legajo, body.transcripcion, body.eneagrama, body.observacion); break;
       default: res = { ok: false, error: 'Acción no reconocida' };
@@ -255,11 +357,49 @@ function doPost(e) {
   }
 }
 
-function actualizarEstado(legajo, nuevoEstado) {
-  if (!legajo || !nuevoEstado) return { ok: false, error: 'Faltan datos' };
-  const est = nuevoEstado.trim().toUpperCase();
-  if (!ESTADOS_VALIDOS.includes(est)) return { ok: false, error: 'Estado inválido: ' + est };
-  return escribirCelda(legajo, COL.ESTADO, est);
+// Cambia el estado del relevamiento aplicando la máquina de transiciones.
+// Si la transición es a REVISIÓN, escribe también la observación (col X) en la misma ejecución.
+function actualizarEstado(legajo, nuevoEstado, rol, observacion, forzar) {
+  if (!legajo)      return { ok: false, error: 'Falta legajo' };
+  if (!nuevoEstado) return { ok: false, error: 'Falta estado' };
+  if (!rol)         return { ok: false, error: 'Falta rol' };
+
+  const nuevo = normalizarEstado(nuevoEstado);
+
+  const hoja  = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HOJA);
+  const datos = hoja.getDataRange().getValues();
+
+  let rowIndex = -1;
+  let fila = null;
+  for (let i = FILA_INICIO - 1; i < datos.length; i++) {
+    if (str(datos[i][COL.LEGAJO]) === str(legajo)) {
+      rowIndex = i;
+      fila = datos[i];
+      break;
+    }
+  }
+  if (rowIndex < 0) return { ok: false, error: 'Legajo no encontrado: ' + legajo };
+
+  const estadoAnterior = normalizarEstado(fila[COL.ESTADO]);
+
+  const v = validarTransicion(estadoAnterior, nuevo, rol, fila, observacion, forzar);
+  if (!v.ok) return v;
+
+  hoja.getRange(rowIndex + 1, COL.ESTADO + 1).setValue(nuevo);
+
+  let observacionGuardada = false;
+  if (nuevo === 'REVISIÓN' && str(observacion)) {
+    hoja.getRange(rowIndex + 1, COL.OBSERVACION + 1).setValue(observacion);
+    observacionGuardada = true;
+  }
+
+  return {
+    ok: true,
+    legajo: str(legajo),
+    estadoAnterior: estadoAnterior,
+    estado: nuevo,
+    observacionGuardada: observacionGuardada
+  };
 }
 
 function actualizarLinks(legajo, borrador, definitivo) {

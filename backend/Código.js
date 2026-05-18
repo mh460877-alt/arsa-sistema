@@ -429,8 +429,12 @@ function getNomina(p, rol) {
   const hayFiltro = fFamilia || fSede || fEstado || fLegajo || fQ;
   const all = p.all === 'true' || p.all === true;
 
+  // Normalizar rol UNA vez — el Sheets guarda 'RRHH' en mayúsculas pero comparamos
+  // contra 'rrhh' lowercase. Usar rolNorm en los checks que siguen.
+  const rolNorm = String(rol || '').toLowerCase();
+
   // Si pide all=true sin rol válido, rechazar (protege los campos privados)
-  if (all && rol !== 'admin' && rol !== 'rrhh') {
+  if (all && rolNorm !== 'admin' && rolNorm !== 'rrhh') {
     return { ok: false, error: 'Acceso completo requiere rol admin o rrhh' };
   }
 
@@ -500,8 +504,8 @@ function getNomina(p, rol) {
       dominio:       str(f[COL.DOMINIO]),
     };
 
-    // Campos privados — solo admin y rrhh
-    if (rol === 'admin' || rol === 'rrhh') {
+    // Campos privados — solo admin y rrhh (usa rolNorm para tolerar 'RRHH' mayúscula del Sheets)
+    if (rolNorm === 'admin' || rolNorm === 'rrhh') {
       emp.transcripcion = str(f[COL.TRANSCRIPT]);
       emp.eneagrama     = str(f[COL.ENEAGRAMA]);
       emp.observacion   = str(f[COL.OBSERVACION]);

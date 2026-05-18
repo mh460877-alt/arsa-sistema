@@ -269,8 +269,8 @@ export class Relevamiento implements OnInit {
   cambiarEstado(emp: any, nuevoEstado: string): void {
     const anterior = emp.estado;
 
-    if (nuevoEstado === 'COMPLETADO' && !emp.linkDefinitivo) {
-      this.errorMsg.set(`${emp.apellido_nombre} no tiene link definitivo cargado. Cargá el link antes de completar.`);
+    if (nuevoEstado === 'PRESENTADO A RRHH' && !emp.linkDefinitivo) {
+      this.errorMsg.set(`${emp.apellido_nombre} no tiene link definitivo cargado. Cargá primero el link en la columna Definitivo antes de presentar a RRHH.`);
       setTimeout(() => this.errorMsg.set(''), 5000);
       return;
     }
@@ -422,6 +422,7 @@ export class Relevamiento implements OnInit {
     const m: Record<string, string> = {
       'COMPLETADO': 'est-ok',
       'REVISIÓN': 'est-rev',
+      'PRESENTADO A RRHH': 'est-pres',
       'ENTREVISTADO': 'est-proc',
       'PENDIENTE': 'est-pend',
     };

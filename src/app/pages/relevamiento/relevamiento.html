@@ -76,6 +76,7 @@
       <option value="">Todos los estados</option>
       <option value="PENDIENTE">Pendiente</option>
       <option value="ENTREVISTADO">Entrevistado</option>
+      <option value="PRESENTADO A RRHH">Presentado a RRHH</option>
       <option value="REVISIÓN">Revisión</option>
       <option value="COMPLETADO">Completado</option>
     </select>
@@ -163,6 +164,7 @@
                   (change)="cambiarEstado(e, $any($event.target).value)" [disabled]="!puedeEditar">
                   <option value="PENDIENTE">Pendiente</option>
                   <option value="ENTREVISTADO">Entrevistado</option>
+                  <option value="PRESENTADO A RRHH">Presentado a RRHH</option>
                   <option value="REVISIÓN">Revisión</option>
                   <option value="COMPLETADO">Completado</option>
                 </select>

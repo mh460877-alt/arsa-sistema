@@ -16,6 +16,15 @@
 const HOJA        = 'NOMENCLADOR DE PUESTO';
 const FILA_INICIO = 3;   // fila 1=título, 2=encabezados, 3=primer empleado
 
+// Layout estándar para pestañas auxiliares (Usuarios, Descriptivos, etc.)
+const HEADER_ROW = 1;
+const DATA_ROW   = 2;
+
+// Nombres de pestañas conocidas
+const TAB_USUARIOS       = 'Usuarios';
+const TAB_DESCRIPTIVOS   = 'Descriptivos';
+const TAB_PROCEDIMIENTOS = 'NOMENCLADOR DE PROCESOS — ARSA';
+
 // Índices de columna (base 0 = columna A)
 const COL = {
   CODIGO:        0,   // A  - CÓDIGO PUESTO
@@ -167,6 +176,122 @@ const SEDES = {
 
 
 // ══════════════════════════════════════════════════════════════════
+//  HELPERS GENÉRICOS DE TABLA (portados del ARSA_Backend)
+//  Asume layout estándar: fila 1 = headers, fila 2+ = datos.
+//  NO usar para NOMENCLADOR DE PUESTO (que tiene título en fila 1).
+// ══════════════════════════════════════════════════════════════════
+
+function getRows(tabName) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(tabName);
+  if (!sheet) throw new Error('No existe la pestaña: ' + tabName);
+  const lastRow = sheet.getLastRow();
+  if (lastRow < DATA_ROW) return [];
+  const lastCol = sheet.getLastColumn();
+  const keys = sheet.getRange(HEADER_ROW, 1, 1, lastCol).getValues()[0];
+  const data = sheet.getRange(DATA_ROW, 1, lastRow - DATA_ROW + 1, lastCol).getValues();
+  return data
+    .filter(function(row) { return row.some(function(c) { return c !== ''; }); })
+    .map(function(row) {
+      const obj = {};
+      keys.forEach(function(key, i) { if (key) obj[key] = String(row[i]).trim(); });
+      return obj;
+    });
+}
+
+function appendRow(tabName, data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(tabName);
+  if (!sheet) throw new Error('No existe la pestaña: ' + tabName);
+  const keys = sheet.getRange(HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
+  sheet.appendRow(keys.map(function(key) {
+    return (key && data[key] !== undefined) ? data[key] : '';
+  }));
+}
+
+function updateRow(tabName, keyField, data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(tabName);
+  if (!sheet) return { ok: false, error: 'No existe la pestaña: ' + tabName };
+  const lastRow = sheet.getLastRow();
+  if (lastRow < DATA_ROW) return { ok: false, error: 'Sin datos' };
+  const lastCol = sheet.getLastColumn();
+  const keys = sheet.getRange(HEADER_ROW, 1, 1, lastCol).getValues()[0];
+  const keyIdx = keys.indexOf(keyField);
+  if (keyIdx < 0) return { ok: false, error: 'Columna no encontrada: ' + keyField };
+  const allData = sheet.getRange(DATA_ROW, 1, lastRow - DATA_ROW + 1, lastCol).getValues();
+  for (let i = 0; i < allData.length; i++) {
+    if (String(allData[i][keyIdx]).trim() === String(data[keyField]).trim()) {
+      keys.forEach(function(key, col) {
+        if (key && data[key] !== undefined) {
+          sheet.getRange(DATA_ROW + i, col + 1).setValue(data[key]);
+        }
+      });
+      return { ok: true, message: 'Actualizado' };
+    }
+  }
+  return { ok: false, error: 'No encontrado' };
+}
+
+function createRow(tabName, data, uniqueKey) {
+  if (uniqueKey) {
+    const rows = getRows(tabName);
+    if (rows.find(function(r) { return r[uniqueKey] === data[uniqueKey]; })) {
+      return { ok: false, error: 'Ya existe: ' + data[uniqueKey] };
+    }
+  }
+  appendRow(tabName, data);
+  return { ok: true, message: 'Creado en ' + tabName };
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+//  AUTH
+// ══════════════════════════════════════════════════════════════════
+
+function login(usuario, password) {
+  if (!usuario) return { ok: false, error: 'Ingresa tu usuario' };
+  const rows = getRows(TAB_USUARIOS);
+  const user = rows.find(function(r) {
+    return r.usuario && r.usuario.toLowerCase() === usuario.toLowerCase() &&
+           r.password && r.password === password;
+  });
+  if (!user) return { ok: false, error: 'Usuario o contraseña incorrectos' };
+  if (!user.activo || user.activo.toUpperCase() !== 'SI') {
+    return { ok: false, error: 'Usuario inactivo' };
+  }
+  const safe = Object.assign({}, user);
+  delete safe.password;
+  return { ok: true, data: safe };
+}
+
+
+// ══════════════════════════════════════════════════════════════════
+//  LINKS / preview
+// ══════════════════════════════════════════════════════════════════
+
+// Convierte URLs de Google Workspace al formato /preview embebible.
+// URLs no-Google (Dropbox, etc.) se devuelven tal cual.
+function _toPreviewUrl(url) {
+  if (!url) return '';
+  let clean = url.split('?')[0].split('#')[0];
+  clean = clean.replace(/\/(edit|view)$/, '/preview');
+  return clean;
+}
+
+function getLinkDefinitivo(legajo) {
+  if (!legajo) return { ok: false, error: 'Falta legajo' };
+  const hoja  = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(HOJA);
+  const datos = hoja.getDataRange().getValues();
+  for (let i = FILA_INICIO - 1; i < datos.length; i++) {
+    if (str(datos[i][COL.LEGAJO]) === str(legajo)) {
+      const raw = str(datos[i][COL.LINK_DEFIN]);
+      if (!raw) return { ok: false, error: 'Sin link definitivo cargado' };
+      return { ok: true, link: _toPreviewUrl(raw) };
+    }
+  }
+  return { ok: false, error: 'Legajo no encontrado: ' + legajo };
+}
+
+
+// ══════════════════════════════════════════════════════════════════
 //  GET — punto de entrada principal
 // ══════════════════════════════════════════════════════════════════
 function doGet(e) {
@@ -176,12 +301,16 @@ function doGet(e) {
 
   let res;
   try {
-    if      (accion === 'nomina')   res = getNomina(p, rol);
-    else if (accion === 'empleado') res = getEmpleado(p.legajo, rol);
-    else if (accion === 'stats')    res = getStats();
-    else if (accion === 'familias') res = { ok: true, data: FAMILIAS };
-    else if (accion === 'sedes')    res = { ok: true, data: SEDES };
-    else                            res = { ok: false, error: 'Acción no reconocida' };
+    if      (accion === 'nomina')            res = getNomina(p, rol);
+    else if (accion === 'empleado' ||
+             accion === 'getEmpleado')       res = getEmpleado(p.legajo, rol);
+    else if (accion === 'stats')             res = getStats();
+    else if (accion === 'familias')          res = { ok: true, data: FAMILIAS };
+    else if (accion === 'sedes')             res = { ok: true, data: SEDES };
+    else if (accion === 'login')             res = login(p.usuario, p.password);
+    else if (accion === 'read')              res = { ok: true, data: getRows(p.tab) };
+    else if (accion === 'getLinkDefinitivo') res = getLinkDefinitivo(p.legajo);
+    else                                     res = { ok: false, error: 'Acción no reconocida' };
   } catch (err) {
     res = { ok: false, error: err.message };
   }
@@ -349,6 +478,13 @@ function doPost(e) {
       case 'actualizarEstado':  res = actualizarEstado(body.legajo, body.estado, body.rol, body.observacion, body.forzar); break;
       case 'actualizarLinks':   res = actualizarLinks(body.legajo, body.linkBorrador, body.linkDefinitivo); break;
       case 'guardarPrivados':   res = guardarPrivados(body.legajo, body.transcripcion, body.eneagrama, body.observacion); break;
+      case 'updateEntrevista':  res = updateEntrevistaRouter(body.data); break;
+      case 'updateUsuario':     res = updateRow(TAB_USUARIOS, 'legajo', body.data); break;
+      // TODO: verificar que exista pestaña 'Nomina' en el NOMENCLADOR DE PUESTO antes de usar este endpoint.
+      // En la migración del ARSA_Backend solo se trajo la pestaña 'Usuarios'. Si el frontend
+      // necesita altas manuales de empleados, hay que decidir: (a) crear pestaña 'Nomina' separada,
+      // o (b) hacer que createEmpleado agregue fila al nomenclador principal directamente.
+      case 'createEmpleado':    res = createRow('Nomina', body.data, 'legajo'); break;
       default: res = { ok: false, error: 'Acción no reconocida' };
     }
     return json(res);
@@ -415,6 +551,54 @@ function guardarPrivados(legajo, transcripcion, eneagrama, observacion) {
   if (eneagrama     !== undefined) escribirCelda(legajo, COL.ENEAGRAMA,   eneagrama);
   if (observacion   !== undefined) escribirCelda(legajo, COL.OBSERVACION, observacion);
   return { ok: true, legajo };
+}
+
+// Router de updateEntrevista — traduce el vocabulario legacy del frontend
+// (id_entrevista, observacion_privada, link_sin_revision) al de los handlers internos,
+// y dispatcha a actualizarLinks / guardarPrivados / actualizarEstado según los campos presentes.
+// Orden de ejecución: links → privados → estado. Devuelve el primer error que aparezca.
+function updateEntrevistaRouter(data) {
+  if (!data) return { ok: false, error: 'Falta data' };
+  const legajo = data.legajo || data.id_entrevista;
+  if (!legajo) return { ok: false, error: 'Falta legajo / id_entrevista' };
+
+  const tieneEstado   = data.estado !== undefined;
+  const tienePrivados = data.transcripcion       !== undefined ||
+                        data.eneagrama           !== undefined ||
+                        data.observacion_privada !== undefined;
+  const tieneLinks    = data.link_sin_revision !== undefined ||
+                        data.link_definitivo   !== undefined;
+
+  if (!tieneEstado && !tienePrivados && !tieneLinks) {
+    return { ok: false, error: 'updateEntrevista sin campos reconocidos' };
+  }
+
+  // Red de seguridad: si va a tocar el estado, requiere rol explícito en el body.
+  if (tieneEstado && !data.rol) {
+    return { ok: false, error: "Falta el parámetro 'rol' en el body para actualizar el estado" };
+  }
+
+  const resultados = {};
+
+  if (tieneLinks) {
+    const r = actualizarLinks(legajo, data.link_sin_revision, data.link_definitivo);
+    if (!r.ok) return r;
+    resultados.links = r;
+  }
+
+  if (tienePrivados) {
+    const r = guardarPrivados(legajo, data.transcripcion, data.eneagrama, data.observacion_privada);
+    if (!r.ok) return r;
+    resultados.privados = r;
+  }
+
+  if (tieneEstado) {
+    const r = actualizarEstado(legajo, data.estado, data.rol, data.observacion, data.forzar);
+    if (!r.ok) return r;
+    resultados.estado = r;
+  }
+
+  return { ok: true, legajo: legajo, resultados: resultados };
 }
 
 // ── Helpers ────────────────────────────────────────────────────────

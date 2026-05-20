@@ -116,6 +116,13 @@ export class Relevamiento implements OnInit {
     url: string;
   } = { abierto: false, tipo: 'borrador', empleado: null, url: '' };
 
+  // ── Modal observación (al marcar REVISIÓN) ────────────────────────
+  modalObservacion: {
+    abierto: boolean;
+    empleado: any;
+    texto: string;
+  } = { abierto: false, empleado: null, texto: '' };
+
   // ── Internos ──────────────────────────────────────────────────────
   private todosLosEmpleados: any[] = [];
 
@@ -275,6 +282,13 @@ export class Relevamiento implements OnInit {
       return;
     }
 
+    // Interceptar REVISIÓN — el backend requiere observación, abrimos modal en vez de POST.
+    // El reflejo + POST los hace confirmarObservacion() al confirmar.
+    if (nuevoEstado === 'REVISIÓN') {
+      this.abrirModalObservacion(emp);
+      return;
+    }
+
     // Reflejo inmediato en memoria
     this.empleados.update(l =>
       l.map(e => e.legajo === emp.legajo ? { ...e, estado: nuevoEstado } : e)
@@ -380,6 +394,67 @@ export class Relevamiento implements OnInit {
         }
       },
       error: () => { this.errorMsg.set('Error de conexión'); }
+    });
+  }
+
+  // ── Modal observación al marcar REVISIÓN ──────────────────────────
+  abrirModalObservacion(emp: any) {
+    this.modalObservacion = { abierto: true, empleado: emp, texto: '' };
+  }
+
+  cerrarModalObservacion() {
+    this.modalObservacion = { abierto: false, empleado: null, texto: '' };
+    // Forzar re-render del select para que vuelva a sincronizar con e.estado real
+    this.empleados.update(l => l.slice());
+  }
+
+  confirmarObservacion(): void {
+    const texto = this.modalObservacion.texto.trim();
+    const emp   = this.modalObservacion.empleado;
+    if (!texto || !emp) return;
+
+    const anterior = emp.estado;
+
+    // Reflejo optimista — estado + observación en memoria (el badge tieneObservacion lee e.observacion)
+    this.empleados.update(l =>
+      l.map(e => e.legajo === emp.legajo ? { ...e, estado: 'REVISIÓN', observacion: texto } : e)
+    );
+    this.todosLosEmpleados = this.todosLosEmpleados.map(e =>
+      e.legajo === emp.legajo ? { ...e, estado: 'REVISIÓN', observacion: texto } : e
+    );
+
+    this.api.post({
+      action: 'updateEntrevista',
+      data: {
+        id_entrevista: emp.legajo,
+        estado:        'REVISIÓN',
+        observacion:   texto,
+        rol:           this.rolUsuario
+      }
+    }).subscribe({
+      next: (res) => {
+        if (res.ok) {
+          this.cargarStats();
+          this.cerrarModalObservacion();
+        } else {
+          this.empleados.update(l =>
+            l.map(e => e.legajo === emp.legajo ? { ...e, estado: anterior, observacion: emp.observacion } : e)
+          );
+          this.todosLosEmpleados = this.todosLosEmpleados.map(e =>
+            e.legajo === emp.legajo ? { ...e, estado: anterior, observacion: emp.observacion } : e
+          );
+          this.errorMsg.set(res.error || 'Error al guardar observación');
+        }
+      },
+      error: () => {
+        this.empleados.update(l =>
+          l.map(e => e.legajo === emp.legajo ? { ...e, estado: anterior, observacion: emp.observacion } : e)
+        );
+        this.todosLosEmpleados = this.todosLosEmpleados.map(e =>
+          e.legajo === emp.legajo ? { ...e, estado: anterior, observacion: emp.observacion } : e
+        );
+        this.errorMsg.set('Error de conexión');
+      }
     });
   }
 

@@ -902,6 +902,26 @@
   box-shadow: 0 0 0 3px rgba(75, 174, 212, .1);
 }
 
+.modal-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid rgba(75, 174, 212, .3);
+  border-radius: 8px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  color: #0A2E4A;
+  outline: none;
+  transition: border-color .2s;
+  box-sizing: border-box;
+  min-height: 100px;
+  resize: vertical;
+}
+
+.modal-textarea:focus {
+  border-color: #4BAED4;
+  box-shadow: 0 0 0 3px rgba(75, 174, 212, .1);
+}
+
 .modal-hint {
   font-size: 11.5px;
   color: #9BBDD1;

@@ -357,3 +357,31 @@
     </div>
   </div>
 </div>
+
+<!-- MODAL OBSERVACIÓN — al marcar REVISIÓN -->
+<div class="modal-overlay" *ngIf="modalObservacion.abierto" (click)="cerrarModalObservacion()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Marcar para revisión</div>
+      <div class="modal-sub">{{ modalObservacion.empleado?.apellido_nombre }}</div>
+      <div class="modal-aclaracion">
+        Indicá qué tiene que corregir o aclarar para que el descriptivo quede aprobado.
+      </div>
+      <button class="modal-close" (click)="cerrarModalObservacion()">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="modal-label">Observación de RRHH</label>
+      <textarea class="modal-textarea" rows="5"
+        placeholder="Detallá los puntos a revisar..."
+        [(ngModel)]="modalObservacion.texto"></textarea>
+      <div class="modal-hint">Esta observación queda guardada y la ve el admin al volver a editar.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-s" (click)="cerrarModalObservacion()">Cancelar</button>
+      <button class="btn btn-p" (click)="confirmarObservacion()"
+        [disabled]="!modalObservacion.texto.trim()">
+        Marcar para revisión
+      </button>
+    </div>
+  </div>
+</div>
